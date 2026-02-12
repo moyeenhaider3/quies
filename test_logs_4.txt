@@ -1,0 +1,85 @@
+00:00 +0: loading /Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart                                                                                    00:01 +0: loading /Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart                                                                                    00:01 +0: OnboardingPage renders Welcome Page initially                                                                                                                                                00:01 +0: OnboardingPage renders Welcome Page initially                                                                                                                                                
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "Take a deep breath": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart:40:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart line 40
+The test description was:
+  OnboardingPage renders Welcome Page initially
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: OnboardingPage renders Welcome Page initially [E]                                                                                                                                         
+  Test failed. See exception logs above.
+  The test description was: OnboardingPage renders Welcome Page initially
+  
+
+To run this test again: /Users/apple/Development/flutter/bin/cache/dart-sdk/bin/dart test /Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart -p vm --plain-name 'OnboardingPage renders Welcome Page initially'
+00:01 +0 -1: Tapping Skip calls cubit.skipOnboarding                                                                                                                                                   00:02 +0 -1: Tapping Skip calls cubit.skipOnboarding                                                                                                                                                   00:02 +0 -1: Tapping Skip calls cubit.skipOnboarding                                                                                                                                                   
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart:62:5)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Tapping Skip calls cubit.skipOnboarding
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +0 -2: Tapping Skip calls cubit.skipOnboarding [E]                                                                                                                                               
+  Test failed. See exception logs above.
+  The test description was: Tapping Skip calls cubit.skipOnboarding
+  
+
+To run this test again: /Users/apple/Development/flutter/bin/cache/dart-sdk/bin/dart test /Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart -p vm --plain-name 'Tapping Skip calls cubit.skipOnboarding'
+00:02 +0 -2: Mood selection calls updateMood                                                                                                                                                           00:03 +0 -2: Mood selection calls updateMood                                                                                                                                                           00:03 +0 -2: Mood selection calls updateMood                                                                                                                                                           
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart:81:5)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Mood selection calls updateMood
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +0 -3: Mood selection calls updateMood [E]                                                                                                                                                       
+  Test failed. See exception logs above.
+  The test description was: Mood selection calls updateMood
+  
+
+To run this test again: /Users/apple/Development/flutter/bin/cache/dart-sdk/bin/dart test /Users/apple/projects/quies/test/features/onboarding/presentation/pages/onboarding_page_test.dart -p vm --plain-name 'Mood selection calls updateMood'
+00:03 +0 -3: Some tests failed.                                                                                                                                                                        

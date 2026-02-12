@@ -1,0 +1,153 @@
+[
+    {
+        "id": "1",
+        "text": "The only way to do great work is to love what you do.",
+        "author": "Steve Jobs",
+        "category": "motivation",
+        "tags": [
+            "work",
+            "passion",
+            "success"
+        ]
+    },
+    {
+        "id": "2",
+        "text": "Believe you can and you're halfway there.",
+        "author": "Theodore Roosevelt",
+        "category": "inspiration",
+        "tags": [
+            "belief",
+            "confidence"
+        ]
+    },
+    {
+        "id": "3",
+        "text": "Peace comes from within. Do not seek it without.",
+        "author": "Buddha",
+        "category": "calm",
+        "tags": [
+            "inner-peace",
+            "mindfulness"
+        ]
+    },
+    {
+        "id": "4",
+        "text": "Happiness is not something ready made. It comes from your own actions.",
+        "author": "Dalai Lama",
+        "category": "happiness",
+        "tags": [
+            "action",
+            "life"
+        ]
+    },
+    {
+        "id": "5",
+        "text": "In the middle of every difficulty lies opportunity.",
+        "author": "Albert Einstein",
+        "category": "motivation",
+        "tags": [
+            "difficulty",
+            "opportunity"
+        ]
+    },
+    {
+        "id": "6",
+        "text": "Breath is the bridge which connects life to consciousness, which unites your body to your thoughts.",
+        "author": "Thich Nhat Hanh",
+        "category": "calm",
+        "tags": [
+            "breathing",
+            "mindfulness"
+        ]
+    },
+    {
+        "id": "7",
+        "text": "You don’t have to control your thoughts. You just have to stop letting them control you.",
+        "author": "Dan Millman",
+        "category": "anxiety",
+        "tags": [
+            "control",
+            "thoughts"
+        ]
+    },
+    {
+        "id": "8",
+        "text": "Feelings come and go like clouds in a windy sky. Conscious breathing is my anchor.",
+        "author": "Thich Nhat Hanh",
+        "category": "anxiety",
+        "tags": [
+            "feelings",
+            "impermanence"
+        ]
+    },
+    {
+        "id": "9",
+        "text": "Sleep is the best meditation.",
+        "author": "Dalai Lama",
+        "category": "sleep",
+        "tags": [
+            "rest",
+            "meditation"
+        ]
+    },
+    {
+        "id": "10",
+        "text": "Finish each day and be done with it. You have done what you could.",
+        "author": "Ralph Waldo Emerson",
+        "category": "sleep",
+        "tags": [
+            "evening",
+            "letting-go"
+        ]
+    },
+    {
+        "id": "11",
+        "text": "Gratitude is not only the greatest of virtues, but the parent of all others.",
+        "author": "Cicero",
+        "category": "gratitude",
+        "tags": [
+            "virtue",
+            "life"
+        ]
+    },
+    {
+        "id": "12",
+        "text": "Act as if what you do makes a difference. It does.",
+        "author": "William James",
+        "category": "motivation",
+        "tags": [
+            "action",
+            "impact"
+        ]
+    },
+    {
+        "id": "13",
+        "text": "Keep your face always toward the sunshine—and shadows will fall behind you.",
+        "author": "Walt Whitman",
+        "category": "inspiration",
+        "tags": [
+            "optimism",
+            "sunshine"
+        ]
+    },
+    {
+        "id": "14",
+        "text": "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+        "author": "Ralph Waldo Emerson",
+        "category": "inspiration",
+        "tags": [
+            "inner-strength",
+            "perspective"
+        ]
+    },
+    {
+        "id": "15",
+        "text": "It does not matter how slowly you go as long as you do not stop.",
+        "author": "Confucius",
+        "category": "persistence",
+        "tags": [
+            "patience",
+            "growth"
+        ]
+    }
+]
