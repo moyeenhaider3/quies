@@ -2,6 +2,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
+
 import '../../../../data/services/user_preferences_service.dart';
 
 part 'onboarding_state.dart';
@@ -30,9 +31,20 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     emit(state.copyWith(selectedThemes: currentThemes));
   }
 
+  void toggleGoal(String goal) {
+    final currentGoals = List<String>.from(state.selectedGoals);
+    if (currentGoals.contains(goal)) {
+      currentGoals.remove(goal);
+    } else {
+      currentGoals.add(goal);
+    }
+    emit(state.copyWith(selectedGoals: currentGoals));
+  }
+
   Future<void> completeOnboarding() async {
     await _preferencesService.setMood(state.selectedMood ?? 'Calm');
     await _preferencesService.setThemes(state.selectedThemes);
+    await _preferencesService.setGoals(state.selectedGoals);
     await _preferencesService.setOnboardingCompleted(true);
     emit(state.copyWith(isCompleted: true));
   }

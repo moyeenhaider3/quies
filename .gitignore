@@ -45,4 +45,6 @@ app.*.map.json
 /android/app/release
 .gemini/
 .planning/
+docs/
+**.txt
 

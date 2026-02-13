@@ -1,12 +1,12 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../presentation/widgets/animated_background.dart';
-
 import '../../../../presentation/widgets/primary_button.dart';
 import '../cubit/onboarding_cubit.dart';
 
@@ -32,6 +32,7 @@ class _OnboardingView extends StatefulWidget {
 class _OnboardingViewState extends State<_OnboardingView> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  static const int _totalPages = 5;
 
   @override
   void dispose() {
@@ -40,10 +41,21 @@ class _OnboardingViewState extends State<_OnboardingView> {
   }
 
   void _nextPage() {
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOutCubic,
-    );
+    if (_currentPage < _totalPages - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
+
+  void _previousPage() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
+    }
   }
 
   @override
@@ -58,65 +70,95 @@ class _OnboardingViewState extends State<_OnboardingView> {
         return Scaffold(
           body: Stack(
             children: [
-              // 1. Background Layer
               const AnimatedBackground(),
-
-              // 2. Content Layer
               SafeArea(
                 child: Column(
                   children: [
-                    // Top Bar (Skip Button)
+                    // Top bar with back + skip
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if (_currentPage < 2)
-                            TextButton(
-                              onPressed: () => context.read<OnboardingCubit>().skipOnboarding(),
-                              child: Text(
-                                'Skip',
-                                style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
-                                  color: AppTheme.starlight.withValues(alpha: 0.6),
-                                ),
+                          // Back button (hidden on first page)
+                          AnimatedOpacity(
+                            opacity: _currentPage > 0 ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 300),
+                            child: IconButton(
+                              onPressed:
+                                  _currentPage > 0 ? _previousPage : null,
+                              icon: Icon(
+                                Icons.arrow_back_ios_rounded,
+                                color: AppTheme.starlight.withValues(alpha: 0.6),
+                                size: 20,
                               ),
                             ),
+                          ),
+                          // Skip button (hidden on last page)
+                          if (_currentPage < _totalPages - 1)
+                            TextButton(
+                              onPressed: () => context
+                                  .read<OnboardingCubit>()
+                                  .skipOnboarding(),
+                              child: Text(
+                                'Skip',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color:
+                                      AppTheme.starlight.withValues(alpha: 0.6),
+                                ),
+                              ),
+                            )
+                          else
+                            const SizedBox(width: 48),
                         ],
                       ),
                     ),
 
-                    // Page Content
+                    // Page content
                     Expanded(
                       child: PageView(
                         controller: _pageController,
                         onPageChanged: (index) {
                           setState(() => _currentPage = index);
-                          context.read<OnboardingCubit>().pageChanged(index);
+                          context
+                              .read<OnboardingCubit>()
+                              .pageChanged(index);
                         },
-                        physics: const NeverScrollableScrollPhysics(), // Disable swipe to enforce flow
+                        physics: const NeverScrollableScrollPhysics(),
                         children: [
                           _WelcomePage(onStart: _nextPage),
                           _MoodPage(onContinue: _nextPage),
+                          _ThemePage(onContinue: _nextPage),
+                          _GoalPage(onContinue: _nextPage),
                           const _CompletionPage(),
                         ],
                       ),
                     ),
-                    
-                    // Bottom Indicators (Optional, maybe dots?)
-                     Padding(
+
+                    // Bottom progress indicators
+                    Padding(
                       padding: const EdgeInsets.only(bottom: 20),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(3, (index) {
+                        children: List.generate(_totalPages, (index) {
+                          final isActive = index == _currentPage;
+                          final isPast = index < _currentPage;
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentPage == index ? 24 : 8,
+                            width: isActive ? 28 : 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: _currentPage == index 
-                                  ? AppTheme.calmTeal 
-                                  : AppTheme.starlight.withValues(alpha: 0.2),
+                              color: isActive
+                                  ? AppTheme.calmTeal
+                                  : isPast
+                                      ? AppTheme.calmTeal
+                                          .withValues(alpha: 0.5)
+                                      : AppTheme.starlight
+                                          .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           );
@@ -134,9 +176,12 @@ class _OnboardingViewState extends State<_OnboardingView> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────
+// Page 1: Welcome
+// ─────────────────────────────────────────────────────────────────
+
 class _WelcomePage extends StatelessWidget {
   final VoidCallback onStart;
-
   const _WelcomePage({required this.onStart});
 
   @override
@@ -147,29 +192,65 @@ class _WelcomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(flex: 2),
+
+          // Breathing circle animation
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppTheme.calmTeal.withValues(alpha: 0.3),
+                  AppTheme.calmTeal.withValues(alpha: 0.05),
+                ],
+              ),
+            ),
+            child: const Center(
+              child: Icon(Icons.spa_rounded, size: 48, color: AppTheme.calmTeal),
+            ),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                  duration: 3000.ms,
+                  begin: const Offset(0.9, 0.9),
+                  end: const Offset(1.1, 1.1),
+                  curve: Curves.easeInOut),
+
+          const SizedBox(height: 40),
+
           Text(
             'Quies',
-            style: AppTheme.lightTheme.textTheme.displayLarge?.copyWith(
-              fontSize: 48,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 52,
+              fontWeight: FontWeight.bold,
               color: AppTheme.calmTeal,
+              letterSpacing: 2,
             ),
           ).animate().fadeIn(duration: 800.ms).moveY(begin: 20, end: 0),
-          
+
           const SizedBox(height: 16),
-          
+
           Text(
             'Find your inner calm\nthrough guided stillness.',
             textAlign: TextAlign.center,
-            style: AppTheme.lightTheme.textTheme.bodyLarge,
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              color: AppTheme.starlight.withValues(alpha: 0.8),
+              height: 1.5,
+            ),
           ).animate().fadeIn(delay: 300.ms, duration: 800.ms),
-          
+
           const Spacer(flex: 3),
-          
+
           PrimaryButton(
             label: 'Begin Journey',
             onPressed: onStart,
-          ).animate().fadeIn(delay: 600.ms, duration: 800.ms).moveY(begin: 20, end: 0),
-          
+          )
+              .animate()
+              .fadeIn(delay: 600.ms, duration: 800.ms)
+              .moveY(begin: 20, end: 0),
+
           const Spacer(flex: 1),
         ],
       ),
@@ -177,12 +258,22 @@ class _WelcomePage extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────
+// Page 2: How are you feeling? (Mood selection)
+// ─────────────────────────────────────────────────────────────────
+
 class _MoodPage extends StatelessWidget {
   final VoidCallback onContinue;
-
   const _MoodPage({required this.onContinue});
 
-  final List<String> moods = const ['Stressed', 'Anxious', 'Tired', 'Okay'];
+  static const _moods = [
+    ('Stressed', '😰', 'Feeling overwhelmed'),
+    ('Anxious', '😟', 'Restless thoughts'),
+    ('Tired', '😴', 'Low on energy'),
+    ('Sad', '😢', 'Feeling down'),
+    ('Calm', '😌', 'At ease'),
+    ('Okay', '🙂', 'Doing fine'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -192,63 +283,115 @@ class _MoodPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Spacer(flex: 1),
+
           Text(
-            'How are you feeling right now?',
-            style: AppTheme.lightTheme.textTheme.displayMedium,
+            'How are you\nfeeling right now?',
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.starlight,
+              height: 1.3,
+            ),
             textAlign: TextAlign.center,
-          ),
-          
-          const SizedBox(height: 48),
-          
+          ).animate().fadeIn(duration: 600.ms),
+
+          const SizedBox(height: 12),
+          Text(
+            'This helps us personalize your experience',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              color: AppTheme.starlight.withValues(alpha: 0.5),
+            ),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+
+          const SizedBox(height: 40),
+
           BlocBuilder<OnboardingCubit, OnboardingState>(
             builder: (context, state) {
               return Wrap(
-                spacing: 16,
-                runSpacing: 16,
+                spacing: 12,
+                runSpacing: 12,
                 alignment: WrapAlignment.center,
-                children: moods.map((mood) {
-                  final isSelected = state.selectedMood == mood;
+                children: _moods.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final (label, emoji, subtitle) = entry.value;
+                  final isSelected = state.selectedMood == label;
                   return GestureDetector(
-                    onTap: () => context.read<OnboardingCubit>().updateMood(mood),
+                    onTap: () =>
+                        context.read<OnboardingCubit>().updateMood(label),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 140, // Fixed width for grid-like look
-                      height: 100,
+                      duration: const Duration(milliseconds: 250),
+                      width: (MediaQuery.of(context).size.width - 72) / 2,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.calmTeal.withValues(alpha: 0.2) : AppTheme.softGlass,
+                        color: isSelected
+                            ? AppTheme.calmTeal.withValues(alpha: 0.15)
+                            : AppTheme.softGlass,
                         border: Border.all(
-                          color: isSelected ? AppTheme.calmTeal : Colors.transparent,
-                          width: 2,
+                          color: isSelected
+                              ? AppTheme.calmTeal
+                              : Colors.transparent,
+                          width: 1.5,
                         ),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Center(
-                        child: Text(
-                          mood,
-                          style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? AppTheme.calmTeal : AppTheme.starlight,
+                      child: Row(
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 28)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  label,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? AppTheme.calmTeal
+                                        : AppTheme.starlight,
+                                  ),
+                                ),
+                                Text(
+                                  subtitle,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    color: AppTheme.starlight
+                                        .withValues(alpha: 0.45),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                  );
+                  )
+                      .animate()
+                      .fadeIn(
+                          delay: (100 * index).ms, duration: 400.ms)
+                      .moveY(begin: 10, end: 0);
                 }).toList(),
               );
             },
           ),
-          
+
           const Spacer(flex: 2),
-          
+
           BlocBuilder<OnboardingCubit, OnboardingState>(
             builder: (context, state) {
               final isEnabled = state.selectedMood != null;
               return AnimatedOpacity(
                 duration: const Duration(milliseconds: 300),
-                opacity: isEnabled ? 1.0 : 0.5,
+                opacity: isEnabled ? 1.0 : 0.4,
                 child: PrimaryButton(
                   label: 'Continue',
-                  onPressed: isEnabled ? onContinue : () {}, // No-op if disabled
+                  onPressed: isEnabled ? onContinue : () {},
                 ),
               );
             },
@@ -259,6 +402,299 @@ class _MoodPage extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────
+// Page 3: Quote themes / categories
+// ─────────────────────────────────────────────────────────────────
+
+class _ThemePage extends StatelessWidget {
+  final VoidCallback onContinue;
+  const _ThemePage({required this.onContinue});
+
+  static const _themes = [
+    ('Wisdom', '📖'),
+    ('Nature', '🌿'),
+    ('Courage', '🦁'),
+    ('Love', '❤️'),
+    ('Mindfulness', '🧘'),
+    ('Stoicism', '🏛️'),
+    ('Gratitude', '🙏'),
+    ('Humor', '😄'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Spacer(flex: 1),
+
+          Text(
+            'What speaks\nto your soul?',
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.starlight,
+              height: 1.3,
+            ),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(duration: 600.ms),
+
+          const SizedBox(height: 12),
+          Text(
+            'Choose topics that resonate with you',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              color: AppTheme.starlight.withValues(alpha: 0.5),
+            ),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+
+          const SizedBox(height: 36),
+
+          BlocBuilder<OnboardingCubit, OnboardingState>(
+            builder: (context, state) {
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: _themes.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final (label, emoji) = entry.value;
+                  final isSelected = state.selectedThemes.contains(label);
+                  return GestureDetector(
+                    onTap: () =>
+                        context.read<OnboardingCubit>().toggleTheme(label),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppTheme.calmTeal.withValues(alpha: 0.15)
+                            : AppTheme.softGlass,
+                        border: Border.all(
+                          color: isSelected
+                              ? AppTheme.calmTeal
+                              : Colors.transparent,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 20)),
+                          const SizedBox(width: 8),
+                          Text(
+                            label,
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppTheme.calmTeal
+                                  : AppTheme.starlight,
+                            ),
+                          ),
+                          if (isSelected) ...[
+                            const SizedBox(width: 6),
+                            const Icon(Icons.check_circle_rounded,
+                                size: 16, color: AppTheme.calmTeal),
+                          ],
+                        ],
+                      ),
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(
+                          delay: (80 * index).ms, duration: 400.ms)
+                      .scale(begin: const Offset(0.9, 0.9));
+                }).toList(),
+              );
+            },
+          ),
+
+          const Spacer(flex: 2),
+
+          BlocBuilder<OnboardingCubit, OnboardingState>(
+            builder: (context, state) {
+              final count = state.selectedThemes.length;
+              return Column(
+                children: [
+                  if (count > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        '$count selected',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          color: AppTheme.calmTeal.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  PrimaryButton(
+                    label: 'Continue',
+                    onPressed: onContinue,
+                  ),
+                ],
+              );
+            },
+          ),
+          const Spacer(flex: 1),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Page 4: What's your intention? (Goals)
+// ─────────────────────────────────────────────────────────────────
+
+class _GoalPage extends StatelessWidget {
+  final VoidCallback onContinue;
+  const _GoalPage({required this.onContinue});
+
+  static const _goals = [
+    ('Reduce stress', '🧘', 'Find moments of peace'),
+    ('Sleep better', '🌙', 'Calm your mind at night'),
+    ('Stay motivated', '🔥', 'Start mornings with purpose'),
+    ('Practice gratitude', '🌻', 'Appreciate the small things'),
+    ('Build resilience', '💪', 'Grow through challenges'),
+    ('Just explore', '✨', 'See what resonates'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Spacer(flex: 1),
+
+          Text(
+            'What brings\nyou here?',
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.starlight,
+              height: 1.3,
+            ),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(duration: 600.ms),
+
+          const SizedBox(height: 12),
+          Text(
+            'Choose your intention — pick as many as you like',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              color: AppTheme.starlight.withValues(alpha: 0.5),
+            ),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+
+          const SizedBox(height: 36),
+
+          BlocBuilder<OnboardingCubit, OnboardingState>(
+            builder: (context, state) {
+              return Column(
+                children: _goals.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final (label, emoji, subtitle) = entry.value;
+                  final isSelected = state.selectedGoals.contains(label);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: GestureDetector(
+                      onTap: () =>
+                          context.read<OnboardingCubit>().toggleGoal(label),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.calmTeal.withValues(alpha: 0.12)
+                              : AppTheme.softGlass,
+                          border: Border.all(
+                            color: isSelected
+                                ? AppTheme.calmTeal
+                                : Colors.transparent,
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(emoji,
+                                style: const TextStyle(fontSize: 24)),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    label,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 15,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? AppTheme.calmTeal
+                                          : AppTheme.starlight,
+                                    ),
+                                  ),
+                                  Text(
+                                    subtitle,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      color: AppTheme.starlight
+                                          .withValues(alpha: 0.45),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(Icons.check_circle_rounded,
+                                  size: 20, color: AppTheme.calmTeal),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(
+                          delay: (80 * index).ms, duration: 400.ms)
+                      .moveX(begin: 20, end: 0);
+                }).toList(),
+              );
+            },
+          ),
+
+          const Spacer(flex: 2),
+
+          PrimaryButton(
+            label: 'Continue',
+            onPressed: onContinue,
+          ),
+          const Spacer(flex: 1),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Page 5: Completion — "You are ready"
+// ─────────────────────────────────────────────────────────────────
 
 class _CompletionPage extends StatelessWidget {
   const _CompletionPage();
@@ -271,11 +707,19 @@ class _CompletionPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(flex: 2),
+
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppTheme.calmTeal.withValues(alpha: 0.1),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.calmTeal.withValues(alpha: 0.15),
+                  blurRadius: 40,
+                  spreadRadius: 10,
+                ),
+              ],
             ),
             child: const Icon(
               Icons.check_rounded,
@@ -283,30 +727,39 @@ class _CompletionPage extends StatelessWidget {
               color: AppTheme.calmTeal,
             ),
           ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
-          
-          const SizedBox(height: 32),
-          
+
+          const SizedBox(height: 36),
+
           Text(
-            'You are ready.',
-            style: AppTheme.lightTheme.textTheme.displayMedium,
+            'You\'re all set.',
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.starlight,
+            ),
             textAlign: TextAlign.center,
           ).animate().fadeIn(delay: 300.ms),
-          
+
           const SizedBox(height: 16),
-          
+
           Text(
-            'Your path to tranquility awaits.',
-            style: AppTheme.lightTheme.textTheme.bodyLarge,
+            'Your path to tranquility awaits.\nTake a deep breath and begin.',
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              color: AppTheme.starlight.withValues(alpha: 0.7),
+              height: 1.5,
+            ),
             textAlign: TextAlign.center,
           ).animate().fadeIn(delay: 500.ms),
-          
+
           const Spacer(flex: 3),
-          
+
           PrimaryButton(
             label: 'Enter Quies',
-            onPressed: () => context.read<OnboardingCubit>().completeOnboarding(),
+            onPressed: () =>
+                context.read<OnboardingCubit>().completeOnboarding(),
           ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
-          
+
           const Spacer(flex: 1),
         ],
       ),

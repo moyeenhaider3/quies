@@ -94,9 +94,10 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
   }
 
   void _showMoodSelector(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -111,7 +112,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: isDark ? Colors.white24 : Colors.black12,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -121,7 +122,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -141,10 +142,14 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.black.withValues(alpha: 0.08),
                           ),
                         ),
                         child: Row(
@@ -156,7 +161,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                               label,
                               style: GoogleFonts.outfit(
                                 fontSize: 15,
-                                color: Colors.white,
+                                color: isDark ? Colors.white : Colors.black87,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -229,7 +234,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                         : '$_quotesExplored quotes explored',
                     style: GoogleFonts.outfit(
                       fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: Colors.white.withValues(alpha: 0.4),
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.5,
                     ),
@@ -267,7 +272,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -298,23 +303,28 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  onPressed: () => context.push('/bookmarks'),
-                  icon: const Icon(
-                    Icons.collections_bookmark_rounded,
-                    color: Colors.white70,
-                    size: 28,
-                  ),
-                  tooltip: 'Saved Quotes',
-                ),
-                IconButton(
-                  onPressed: () => context.push('/settings'),
-                  icon: const Icon(
-                    Icons.settings_rounded,
-                    color: Colors.white70,
-                    size: 28,
-                  ),
-                  tooltip: 'Settings',
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () => context.push('/bookmarks'),
+                      icon: Icon(
+                        Icons.collections_bookmark_rounded,
+                        color: Colors.white70,
+                        size: 28,
+                      ),
+                      tooltip: 'Saved Quotes',
+                    ),
+                    IconButton(
+                      onPressed: () => context.push('/settings'),
+                      icon: Icon(
+                        Icons.settings_rounded,
+                        color: Colors.white70,
+                        size: 28,
+                      ),
+                      tooltip: 'Settings',
+                    ),
+                  ],
                 ),
               ],
             ),

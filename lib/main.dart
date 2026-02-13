@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/di/injection.dart';
@@ -10,6 +11,9 @@ import 'data/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Use bundled fonts instead of fetching at runtime (fixes release builds)
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Initialize Hive
   await Hive.initFlutter();

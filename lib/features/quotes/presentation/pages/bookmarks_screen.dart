@@ -10,6 +10,8 @@ class BookmarksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -34,16 +36,16 @@ class BookmarksScreen extends StatelessWidget {
               .toList();
 
           if (bookmarkedQuotes.isEmpty) {
-            return _buildEmptyState();
+            return _buildEmptyState(isDark);
           }
 
-          return _buildBookmarksList(context, bookmarkedQuotes);
+          return _buildBookmarksList(context, bookmarkedQuotes, isDark);
         },
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 48.0),
@@ -53,7 +55,9 @@ class BookmarksScreen extends StatelessWidget {
             Icon(
               Icons.bookmark_border_rounded,
               size: 80,
-              color: Colors.white.withValues(alpha: 0.15),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.12),
             ),
             const SizedBox(height: 24),
             Text(
@@ -61,14 +65,17 @@ class BookmarksScreen extends StatelessWidget {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDark ? Colors.white : Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
               'Tap the bookmark icon on any quote to save it here',
-              style: GoogleFonts.outfit(fontSize: 16, color: Colors.white60),
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -77,7 +84,11 @@ class BookmarksScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBookmarksList(BuildContext context, List<Quote> quotes) {
+  Widget _buildBookmarksList(
+    BuildContext context,
+    List<Quote> quotes,
+    bool isDark,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: quotes.length,
@@ -99,20 +110,26 @@ class BookmarksScreen extends StatelessWidget {
           onDismissed: (_) {
             context.read<FeedBloc>().add(ToggleBookmark(quote.id));
           },
-          child: _buildBookmarkTile(context, quote),
+          child: _buildBookmarkTile(context, quote, isDark),
         );
       },
     );
   }
 
-  Widget _buildBookmarkTile(BuildContext context, Quote quote) {
+  Widget _buildBookmarkTile(BuildContext context, Quote quote, bool isDark) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.black.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.06),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +145,7 @@ class BookmarksScreen extends StatelessWidget {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : Colors.black87,
                     height: 1.4,
                   ),
                 ),
@@ -139,7 +156,7 @@ class BookmarksScreen extends StatelessWidget {
                       '— ${quote.author}',
                       style: GoogleFonts.outfit(
                         fontSize: 13,
-                        color: Colors.white54,
+                        color: isDark ? Colors.white54 : Colors.black54,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -150,14 +167,16 @@ class BookmarksScreen extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         quote.category.toUpperCase(),
                         style: GoogleFonts.outfit(
                           fontSize: 10,
-                          color: Colors.white38,
+                          color: isDark ? Colors.white38 : Colors.black38,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
                         ),
@@ -173,9 +192,9 @@ class BookmarksScreen extends StatelessWidget {
             onPressed: () {
               context.read<FeedBloc>().add(ToggleBookmark(quote.id));
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.bookmark_remove_rounded,
-              color: Colors.amberAccent,
+              color: isDark ? Colors.amberAccent : Colors.amber.shade700,
               size: 24,
             ),
             tooltip: 'Remove bookmark',

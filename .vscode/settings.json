@@ -1,6 +1,7 @@
 {
   "chat.tools.terminal.autoApprove": {
     "dart": true,
-    "flutter": true
+    "flutter": true,
+    "mkdir": true
   }
 }
