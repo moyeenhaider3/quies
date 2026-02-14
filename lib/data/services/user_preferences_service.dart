@@ -15,6 +15,7 @@ class UserPreferencesService {
   static const String _keyReminderHour = 'reminder_hour';
   static const String _keyReminderMinute = 'reminder_minute';
   static const String _keyLastActiveTimestamp = 'last_active_timestamp';
+  static const String _keyAudioEnabled = 'audio_enabled';
 
   final Box<dynamic> _box;
 
@@ -126,5 +127,12 @@ class UserPreferencesService {
     if (last == null) return false;
     final elapsed = DateTime.now().millisecondsSinceEpoch - last;
     return elapsed > minutes * 60 * 1000;
+  }
+
+  // Audio preference (default: enabled for fresh installs)
+  bool get audioEnabled => _box.get(_keyAudioEnabled, defaultValue: true);
+
+  Future<void> setAudioEnabled(bool value) async {
+    await _box.put(_keyAudioEnabled, value);
   }
 }
