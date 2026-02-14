@@ -129,6 +129,11 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         themes: themes,
       );
 
+      // Pre-enable sound for all quotes if audioEnabled preference is true
+      final soundEnabled = _prefsService.audioEnabled
+          ? sorted.map((q) => q.id).toSet()
+          : <String>{};
+
       emit(
         FeedLoaded(
           sorted,
@@ -136,6 +141,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           bookmarkedIds: savedBookmarks,
           currentMood: mood,
           isOffline: isOffline,
+          soundEnabledQuoteIds: soundEnabled,
         ),
       );
 
@@ -178,6 +184,11 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         final newQuotes = paginated.results.map((rq) => rq.toQuote()).toList();
         final allQuotes = [...currentState.quotes, ...newQuotes];
 
+        // Pre-enable sound for new quotes if audioEnabled
+        final newSoundEnabled = _prefsService.audioEnabled
+            ? {...currentState.soundEnabledQuoteIds, ...newQuotes.map((q) => q.id)}
+            : currentState.soundEnabledQuoteIds;
+
         emit(
           currentState.copyWith(
             quotes: allQuotes,
@@ -185,6 +196,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             isLoadingMore: false,
             currentPage: paginated.page,
             totalPages: paginated.totalPages,
+            soundEnabledQuoteIds: newSoundEnabled,
           ),
         );
 
@@ -199,11 +211,17 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       ) {
         final allQuotes = [...currentState.quotes, ...newQuotes];
 
+        // Pre-enable sound for new quotes if audioEnabled
+        final newSoundEnabled = _prefsService.audioEnabled
+            ? {...currentState.soundEnabledQuoteIds, ...newQuotes.map((q) => q.id)}
+            : currentState.soundEnabledQuoteIds;
+
         emit(
           currentState.copyWith(
             quotes: allQuotes,
             feedItems: _buildFeedItems(allQuotes),
             isLoadingMore: false,
+            soundEnabledQuoteIds: newSoundEnabled,
           ),
         );
 
