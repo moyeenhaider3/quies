@@ -9,6 +9,7 @@ import '../../../../core/theme/theme_cubit.dart';
 import '../../../music/domain/entities/music_preview.dart';
 import '../../domain/entities/quote.dart';
 import '../bloc/feed_bloc.dart';
+import 'author_detail_modal.dart';
 
 class QuoteCard extends StatelessWidget {
   final Quote quote;
@@ -54,36 +55,40 @@ class QuoteCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Spacer(),
-                  // Quote Text
+                  // Quote Text — word-by-word staggered animation
                   BlocBuilder<ThemeCubit, ThemeState>(
                     builder: (context, themeState) {
-                      return Text(
-                            quote.text,
-                            style: AppTheme.quoteTextStyle(
-                              fontFamily: themeState.quoteFont,
-                              fontSize: themeState.quoteFontSize,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          )
-                          .animate()
-                          .fadeIn(duration: 800.ms)
-                          .slideY(begin: 0.3, end: 0, curve: Curves.easeOut);
+                      return _buildAnimatedQuote(
+                        quote.text,
+                        themeState.quoteFont,
+                        themeState.quoteFontSize,
+                      );
                     },
                   ),
 
                   const SizedBox(height: 32),
 
                   // Author
-                  Text(
-                        "- ${quote.author}",
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          color: Colors.white70,
-                          fontStyle: FontStyle.italic,
-                          letterSpacing: 1.0,
+                  GestureDetector(
+                    onTap: () {
+                      if (quote.authorSlug != null) {
+                        AuthorDetailModal.show(
+                          context,
+                          authorSlug: quote.authorSlug!,
+                          authorName: quote.author,
+                        );
+                      }
+                    },
+                    child: Text(
+                          "- ${quote.author}",
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            color: Colors.white70,
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 1.0,
+                          ),
                         ),
-                      )
+                  )
                       .animate()
                       .fadeIn(delay: 400.ms, duration: 600.ms)
                       .slideY(begin: 0.2, end: 0),
@@ -221,6 +226,21 @@ class QuoteCard extends StatelessWidget {
                           activeColor: Colors.amberAccent,
                           isActive: isBookmarked,
                         ),
+                        _buildActionButton(
+                          context,
+                          icon: Icons.person_outline_rounded,
+                          label: 'Author',
+                          onTap: () {
+                            if (quote.authorSlug != null) {
+                              AuthorDetailModal.show(
+                                context,
+                                authorSlug: quote.authorSlug!,
+                                authorName: quote.author,
+                              );
+                            }
+                          },
+                          delay: 1100.ms,
+                        ),
                       ],
                     ),
                   ),
@@ -230,6 +250,47 @@ class QuoteCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Build word-by-word animated quote text.
+  ///
+  /// Each word fades in and slides from right with a staggered delay (80ms/word),
+  /// creating an elegant reveal effect. Capped at 300ms base delay to keep
+  /// long quotes from taking too long to fully appear.
+  Widget _buildAnimatedQuote(String text, String fontFamily, double fontSize) {
+    final words = text.split(' ');
+    const staggerMs = 80;
+    // Cap total stagger so very long quotes don't take forever
+    final maxDelay = (words.length * staggerMs).clamp(0, 3000);
+    final effectiveStagger = words.length > 1
+        ? maxDelay ~/ words.length
+        : staggerMs;
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 4,
+      runSpacing: 2,
+      children: List.generate(words.length, (i) {
+        final delay = Duration(milliseconds: i * effectiveStagger);
+        return Text(
+              words[i],
+              style: AppTheme.quoteTextStyle(
+                fontFamily: fontFamily,
+                fontSize: fontSize,
+                color: Colors.white,
+              ),
+            )
+            .animate()
+            .fadeIn(delay: delay, duration: 400.ms)
+            .slideX(
+              delay: delay,
+              begin: 0.15,
+              end: 0,
+              duration: 350.ms,
+              curve: Curves.easeOut,
+            );
+      }),
     );
   }
 
