@@ -36,6 +36,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
 
   bool _showWelcomeBack = false;
   int _quotesExplored = 0;
+  bool _hasInitialAutoPlay = false;
 
   late final UserPreferencesService _prefsService;
   late final FeedAudioController _audioController;
@@ -87,6 +88,28 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
     setState(() {
       _showWelcomeBack = false;
     });
+  }
+
+  void _tryInitialAutoPlay(FeedLoaded state) {
+    if (_hasInitialAutoPlay) return;
+
+    // Find first quote in feed
+    final firstQuoteItem = state.feedItems
+        .whereType<QuoteFeedItem>()
+        .firstOrNull;
+    if (firstQuoteItem == null) return;
+
+    final quote = firstQuoteItem.quote;
+    final music = state.pairedMusic[quote.id];
+    final isSoundOn = state.soundEnabledQuoteIds.contains(quote.id);
+
+    // Auto-play when music is available and sound is enabled
+    if (music != null && isSoundOn) {
+      _hasInitialAutoPlay = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _audioController.playForQuote(quote.id, music.previewUrl);
+      });
+    }
   }
 
   void _onPageChanged(int index, FeedLoaded feedState) {
@@ -217,6 +240,9 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                 } else if (state is FeedError) {
                   return Center(child: Text(state.message));
                 } else if (state is FeedLoaded) {
+                  // Trigger auto-play for first quote when music becomes available
+                  _tryInitialAutoPlay(state);
+                  
                   return Column(
                     children: [
                       // Top spacing for status bar + top bar
@@ -309,149 +335,172 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
               },
             ),
 
-            // Top bar: mood + progress + bookmarks + settings
+            // Top bar: vertical icons on left + centered branding
             Positioned(
               top: MediaQuery.of(context).padding.top + 8,
               left: 16,
               right: 16,
-              child: Row(
-                children: [
-                  // Mood selector
-                  BlocBuilder<FeedBloc, FeedState>(
-                    buildWhen: (prev, curr) {
-                      if (prev is FeedLoaded && curr is FeedLoaded) {
-                        return prev.currentMood != curr.currentMood ||
-                            prev.isOffline != curr.isOffline;
-                      }
-                      return true;
-                    },
-                    builder: (context, state) {
-                      final mood = state is FeedLoaded
-                          ? state.currentMood
-                          : null;
-                      final isOffline = state is FeedLoaded
-                          ? state.isOffline
-                          : false;
-                      final emoji = mood != null
-                          ? _moods
-                                .firstWhere(
-                                  (e) => e.$1 == mood,
-                                  orElse: () => ('', '🎯'),
-                                )
-                                .$2
-                          : '🎯';
-                      return Row(
+              child: BlocBuilder<FeedBloc, FeedState>(
+                builder: (context, state) {
+                  // Get accent color from current quote's gradient
+                  Color accentColor = Colors.white70;
+                  if (state is FeedLoaded && state.feedItems.isNotEmpty) {
+                    final firstItem = state.feedItems.first;
+                    if (firstItem is QuoteFeedItem) {
+                      accentColor = AppTheme.getPrimaryColorForId(firstItem.quote.id);
+                    }
+                  }
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left side: Vertical column with settings on top, bookmarks below
+                      Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          GestureDetector(
-                            onTap: () => _showMoodSelector(context),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
+                          IconButton(
+                            onPressed: () => context.push('/settings'),
+                            icon: Icon(
+                              Icons.settings_rounded,
+                              color: accentColor.withValues(alpha: 0.9),
+                              size: 24,
+                            ),
+                            tooltip: 'Settings',
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                          ),
+                          const SizedBox(height: 4),
+                          IconButton(
+                            onPressed: () => context.push('/bookmarks'),
+                            icon: Icon(
+                              Icons.collections_bookmark_rounded,
+                              color: accentColor.withValues(alpha: 0.9),
+                              size: 24,
+                            ),
+                            tooltip: 'Saved Quotes',
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+
+                      // Center: Expanded area with "Quies" branding centered
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              'Quies',
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.9),
+                                letterSpacing: 1.5,
                               ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                            // Subtle progress indicator below branding
+                            if (_quotesExplored > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: AnimatedOpacity(
+                                  opacity: 1.0,
+                                  duration: const Duration(milliseconds: 600),
+                                  child: Text(
+                                    _quotesExplored == 1
+                                        ? '1 quote explored'
+                                        : '$_quotesExplored quotes explored',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      color: Colors.white.withValues(alpha: 0.4),
+                                      fontWeight: FontWeight.w400,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
+                          ],
+                        ),
+                      ),
+
+                      // Right side: Mood selector to balance the layout
+                      BlocBuilder<FeedBloc, FeedState>(
+                        buildWhen: (prev, curr) {
+                          if (prev is FeedLoaded && curr is FeedLoaded) {
+                            return prev.currentMood != curr.currentMood ||
+                                prev.isOffline != curr.isOffline;
+                          }
+                          return true;
+                        },
+                        builder: (context, moodState) {
+                          final mood = moodState is FeedLoaded
+                              ? moodState.currentMood
+                              : null;
+                          final isOffline = moodState is FeedLoaded
+                              ? moodState.isOffline
+                              : false;
+                          final emoji = mood != null
+                              ? _moods
+                                    .firstWhere(
+                                      (e) => e.$1 == mood,
+                                      orElse: () => ('', '🎯'),
+                                    )
+                                    .$2
+                              : '🎯';
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () => _showMoodSelector(context),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: accentColor.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: accentColor.withValues(alpha: 0.25),
+                                    ),
+                                  ),
+                                  child: Text(
                                     emoji,
                                     style: const TextStyle(fontSize: 16),
                                   ),
-                                  if (mood != null) ...[
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      mood,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 13,
-                                        color: Colors.white70,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (isOffline) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Offline',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11,
-                                  color: Colors.orange,
-                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ),
-                          ],
-                        ],
-                      );
-                    },
-                  ),
-
-                  const Spacer(),
-
-                  // Gentle progress indicator
-                  if (_quotesExplored > 0)
-                    AnimatedOpacity(
-                      opacity: 1.0,
-                      duration: const Duration(milliseconds: 600),
-                      child: Text(
-                        _quotesExplored == 1
-                            ? '1 quote explored'
-                            : '$_quotesExplored quotes explored',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.4),
-                          fontWeight: FontWeight.w400,
-                          letterSpacing: 0.5,
-                        ),
+                              if (isOffline) ...[
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Offline',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          );
+                        },
                       ),
-                    ),
-
-                  // Right actions
-                  IconButton(
-                    onPressed: () => context.push('/bookmarks'),
-                    icon: const Icon(
-                      Icons.collections_bookmark_rounded,
-                      color: Colors.white70,
-                      size: 24,
-                    ),
-                    tooltip: 'Saved Quotes',
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.all(6),
-                    constraints: const BoxConstraints(),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    onPressed: () => context.push('/settings'),
-                    icon: const Icon(
-                      Icons.settings_rounded,
-                      color: Colors.white70,
-                      size: 24,
-                    ),
-                    tooltip: 'Settings',
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.all(6),
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
 
