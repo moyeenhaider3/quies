@@ -28,40 +28,12 @@ class QuoteCard extends StatelessWidget {
     this.onToggleSound,
   });
 
-  // Generate a consistent gradient based on the quote ID length or hash
-  LinearGradient _getGradient(String id) {
-    final gradients = [
-      const LinearGradient(
-        colors: [Color(0xFF0F172A), Color(0xFF312E81)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFF2C3E50), Color(0xFF4CA1AF)], // Dark Blue to Teal
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFF232526), Color(0xFF414345)], // Midnight City
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ];
-    final index = id.hashCode.abs() % gradients.length;
-    return gradients[index];
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      decoration: BoxDecoration(gradient: _getGradient(quote.id)),
+      decoration: BoxDecoration(gradient: AppTheme.getGradientForId(quote.id)),
       child: Stack(
         children: [
           // Background decoration (optional subtle patterns or noise could go here)
