@@ -167,4 +167,41 @@ class AppTheme {
       ),
     );
   }
+
+  // Card gradients for consistent styling across the app
+  static const List<LinearGradient> cardGradients = [
+    LinearGradient(
+      colors: [Color(0xFF0F172A), Color(0xFF312E81)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    LinearGradient(
+      colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    LinearGradient(
+      colors: [Color(0xFF2C3E50), Color(0xFF4CA1AF)], // Dark Blue to Teal
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    LinearGradient(
+      colors: [Color(0xFF232526), Color(0xFF414345)], // Midnight City
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  ];
+
+  /// Get a consistent gradient based on quote ID
+  static LinearGradient getGradientForId(String id) {
+    final index = id.hashCode.abs() % cardGradients.length;
+    return cardGradients[index];
+  }
+
+  /// Get the primary (accent) color from a gradient for a given ID
+  static Color getPrimaryColorForId(String id) {
+    final gradient = getGradientForId(id);
+    // Return the last color as the accent (typically the lighter/more vibrant one)
+    return gradient.colors.last;
+  }
 }
