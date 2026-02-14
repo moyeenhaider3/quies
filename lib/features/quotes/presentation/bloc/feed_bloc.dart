@@ -482,17 +482,18 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       (_) {
         // API failed — provide hardcoded fallback tags
         final currentState = state;
-        if (currentState is FeedLoaded &&
-            currentState.availableTags.isEmpty) {
+        if (currentState is FeedLoaded && currentState.availableTags.isEmpty) {
           emit(currentState.copyWith(availableTags: _fallbackTags));
         }
       },
       (tags) {
         final currentState = state;
         if (currentState is FeedLoaded) {
-          emit(currentState.copyWith(
-            availableTags: tags.isNotEmpty ? tags : _fallbackTags,
-          ));
+          emit(
+            currentState.copyWith(
+              availableTags: tags.isNotEmpty ? tags : _fallbackTags,
+            ),
+          );
         }
       },
     );
@@ -500,22 +501,67 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
   /// Hardcoded fallback tags when the API is unavailable.
   static final List<TagModel> _fallbackTags = [
-    const TagModel(id: 'inspirational', name: 'Inspirational', slug: 'inspirational', quoteCount: 0),
-    const TagModel(id: 'motivational', name: 'Motivational', slug: 'motivational', quoteCount: 0),
+    const TagModel(
+      id: 'inspirational',
+      name: 'Inspirational',
+      slug: 'inspirational',
+      quoteCount: 0,
+    ),
+    const TagModel(
+      id: 'motivational',
+      name: 'Motivational',
+      slug: 'motivational',
+      quoteCount: 0,
+    ),
     const TagModel(id: 'love', name: 'Love', slug: 'love', quoteCount: 0),
-    const TagModel(id: 'happiness', name: 'Happiness', slug: 'happiness', quoteCount: 0),
+    const TagModel(
+      id: 'happiness',
+      name: 'Happiness',
+      slug: 'happiness',
+      quoteCount: 0,
+    ),
     const TagModel(id: 'life', name: 'Life', slug: 'life', quoteCount: 0),
     const TagModel(id: 'wisdom', name: 'Wisdom', slug: 'wisdom', quoteCount: 0),
-    const TagModel(id: 'success', name: 'Success', slug: 'success', quoteCount: 0),
-    const TagModel(id: 'friendship', name: 'Friendship', slug: 'friendship', quoteCount: 0),
-    const TagModel(id: 'knowledge', name: 'Knowledge', slug: 'knowledge', quoteCount: 0),
+    const TagModel(
+      id: 'success',
+      name: 'Success',
+      slug: 'success',
+      quoteCount: 0,
+    ),
+    const TagModel(
+      id: 'friendship',
+      name: 'Friendship',
+      slug: 'friendship',
+      quoteCount: 0,
+    ),
+    const TagModel(
+      id: 'knowledge',
+      name: 'Knowledge',
+      slug: 'knowledge',
+      quoteCount: 0,
+    ),
     const TagModel(id: 'humor', name: 'Humor', slug: 'humor', quoteCount: 0),
-    const TagModel(id: 'philosophy', name: 'Philosophy', slug: 'philosophy', quoteCount: 0),
+    const TagModel(
+      id: 'philosophy',
+      name: 'Philosophy',
+      slug: 'philosophy',
+      quoteCount: 0,
+    ),
     const TagModel(id: 'faith', name: 'Faith', slug: 'faith', quoteCount: 0),
     const TagModel(id: 'hope', name: 'Hope', slug: 'hope', quoteCount: 0),
-    const TagModel(id: 'courage', name: 'Courage', slug: 'courage', quoteCount: 0),
+    const TagModel(
+      id: 'courage',
+      name: 'Courage',
+      slug: 'courage',
+      quoteCount: 0,
+    ),
     const TagModel(id: 'nature', name: 'Nature', slug: 'nature', quoteCount: 0),
-    const TagModel(id: 'freedom', name: 'Freedom', slug: 'freedom', quoteCount: 0),
+    const TagModel(
+      id: 'freedom',
+      name: 'Freedom',
+      slug: 'freedom',
+      quoteCount: 0,
+    ),
   ];
 
   /// Search authors for autocomplete.

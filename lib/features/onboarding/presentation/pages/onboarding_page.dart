@@ -77,7 +77,9 @@ class _OnboardingViewState extends State<_OnboardingView> {
                     // Top bar with back + skip
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -86,11 +88,14 @@ class _OnboardingViewState extends State<_OnboardingView> {
                             opacity: _currentPage > 0 ? 1.0 : 0.0,
                             duration: const Duration(milliseconds: 300),
                             child: IconButton(
-                              onPressed:
-                                  _currentPage > 0 ? _previousPage : null,
+                              onPressed: _currentPage > 0
+                                  ? _previousPage
+                                  : null,
                               icon: Icon(
                                 Icons.arrow_back_ios_rounded,
-                                color: AppTheme.starlight.withValues(alpha: 0.6),
+                                color: AppTheme.starlight.withValues(
+                                  alpha: 0.6,
+                                ),
                                 size: 20,
                               ),
                             ),
@@ -106,8 +111,9 @@ class _OnboardingViewState extends State<_OnboardingView> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color:
-                                      AppTheme.starlight.withValues(alpha: 0.6),
+                                  color: AppTheme.starlight.withValues(
+                                    alpha: 0.6,
+                                  ),
                                 ),
                               ),
                             )
@@ -123,9 +129,7 @@ class _OnboardingViewState extends State<_OnboardingView> {
                         controller: _pageController,
                         onPageChanged: (index) {
                           setState(() => _currentPage = index);
-                          context
-                              .read<OnboardingCubit>()
-                              .pageChanged(index);
+                          context.read<OnboardingCubit>().pageChanged(index);
                         },
                         physics: const NeverScrollableScrollPhysics(),
                         children: [
@@ -155,10 +159,8 @@ class _OnboardingViewState extends State<_OnboardingView> {
                               color: isActive
                                   ? AppTheme.calmTeal
                                   : isPast
-                                      ? AppTheme.calmTeal
-                                          .withValues(alpha: 0.5)
-                                      : AppTheme.starlight
-                                          .withValues(alpha: 0.15),
+                                  ? AppTheme.calmTeal.withValues(alpha: 0.5)
+                                  : AppTheme.starlight.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           );
@@ -195,27 +197,32 @@ class _WelcomePage extends StatelessWidget {
 
           // Breathing circle animation
           Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  AppTheme.calmTeal.withValues(alpha: 0.3),
-                  AppTheme.calmTeal.withValues(alpha: 0.05),
-                ],
-              ),
-            ),
-            child: const Center(
-              child: Icon(Icons.spa_rounded, size: 48, color: AppTheme.calmTeal),
-            ),
-          )
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.calmTeal.withValues(alpha: 0.3),
+                      AppTheme.calmTeal.withValues(alpha: 0.05),
+                    ],
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.spa_rounded,
+                    size: 48,
+                    color: AppTheme.calmTeal,
+                  ),
+                ),
+              )
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .scale(
-                  duration: 3000.ms,
-                  begin: const Offset(0.9, 0.9),
-                  end: const Offset(1.1, 1.1),
-                  curve: Curves.easeInOut),
+                duration: 3000.ms,
+                begin: const Offset(0.9, 0.9),
+                end: const Offset(1.1, 1.1),
+                curve: Curves.easeInOut,
+              ),
 
           const SizedBox(height: 40),
 
@@ -243,10 +250,7 @@ class _WelcomePage extends StatelessWidget {
 
           const Spacer(flex: 3),
 
-          PrimaryButton(
-            label: 'Begin Journey',
-            onPressed: onStart,
-          )
+          PrimaryButton(label: 'Begin Journey', onPressed: onStart)
               .animate()
               .fadeIn(delay: 600.ms, duration: 800.ms)
               .moveY(begin: 20, end: 0),
@@ -320,63 +324,65 @@ class _MoodPage extends StatelessWidget {
                   final (label, emoji, subtitle) = entry.value;
                   final isSelected = state.selectedMood == label;
                   return GestureDetector(
-                    onTap: () =>
-                        context.read<OnboardingCubit>().updateMood(label),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      width: (MediaQuery.of(context).size.width - 72) / 2,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.calmTeal.withValues(alpha: 0.15)
-                            : AppTheme.softGlass,
-                        border: Border.all(
-                          color: isSelected
-                              ? AppTheme.calmTeal
-                              : Colors.transparent,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(emoji, style: const TextStyle(fontSize: 28)),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  label,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 15,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color: isSelected
-                                        ? AppTheme.calmTeal
-                                        : AppTheme.starlight,
-                                  ),
-                                ),
-                                Text(
-                                  subtitle,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11,
-                                    color: AppTheme.starlight
-                                        .withValues(alpha: 0.45),
-                                  ),
-                                ),
-                              ],
-                            ),
+                        onTap: () =>
+                            context.read<OnboardingCubit>().updateMood(label),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: (MediaQuery.of(context).size.width - 72) / 2,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
                           ),
-                        ],
-                      ),
-                    ),
-                  )
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppTheme.calmTeal.withValues(alpha: 0.15)
+                                : AppTheme.softGlass,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppTheme.calmTeal
+                                  : Colors.transparent,
+                              width: 1.5,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(emoji, style: const TextStyle(fontSize: 28)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      label,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 15,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: isSelected
+                                            ? AppTheme.calmTeal
+                                            : AppTheme.starlight,
+                                      ),
+                                    ),
+                                    Text(
+                                      subtitle,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        color: AppTheme.starlight.withValues(
+                                          alpha: 0.45,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
                       .animate()
-                      .fadeIn(
-                          delay: (100 * index).ms, duration: 400.ms)
+                      .fadeIn(delay: (100 * index).ms, duration: 400.ms)
                       .moveY(begin: 10, end: 0);
                 }).toList(),
               );
@@ -471,53 +477,57 @@ class _ThemePage extends StatelessWidget {
                   final (label, emoji) = entry.value;
                   final isSelected = state.selectedThemes.contains(label);
                   return GestureDetector(
-                    onTap: () =>
-                        context.read<OnboardingCubit>().toggleTheme(label),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.calmTeal.withValues(alpha: 0.15)
-                            : AppTheme.softGlass,
-                        border: Border.all(
-                          color: isSelected
-                              ? AppTheme.calmTeal
-                              : Colors.transparent,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(emoji, style: const TextStyle(fontSize: 20)),
-                          const SizedBox(width: 8),
-                          Text(
-                            label,
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
+                        onTap: () =>
+                            context.read<OnboardingCubit>().toggleTheme(label),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppTheme.calmTeal.withValues(alpha: 0.15)
+                                : AppTheme.softGlass,
+                            border: Border.all(
                               color: isSelected
                                   ? AppTheme.calmTeal
-                                  : AppTheme.starlight,
+                                  : Colors.transparent,
+                              width: 1.5,
                             ),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          if (isSelected) ...[
-                            const SizedBox(width: 6),
-                            const Icon(Icons.check_circle_rounded,
-                                size: 16, color: AppTheme.calmTeal),
-                          ],
-                        ],
-                      ),
-                    ),
-                  )
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(emoji, style: const TextStyle(fontSize: 20)),
+                              const SizedBox(width: 8),
+                              Text(
+                                label,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 14,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? AppTheme.calmTeal
+                                      : AppTheme.starlight,
+                                ),
+                              ),
+                              if (isSelected) ...[
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 16,
+                                  color: AppTheme.calmTeal,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      )
                       .animate()
-                      .fadeIn(
-                          delay: (80 * index).ms, duration: 400.ms)
+                      .fadeIn(delay: (80 * index).ms, duration: 400.ms)
                       .scale(begin: const Offset(0.9, 0.9));
                 }).toList(),
               );
@@ -543,10 +553,7 @@ class _ThemePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                  PrimaryButton(
-                    label: 'Continue',
-                    onPressed: onContinue,
-                  ),
+                  PrimaryButton(label: 'Continue', onPressed: onContinue),
                 ],
               );
             },
@@ -615,70 +622,77 @@ class _GoalPage extends StatelessWidget {
                   final (label, emoji, subtitle) = entry.value;
                   final isSelected = state.selectedGoals.contains(label);
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: GestureDetector(
-                      onTap: () =>
-                          context.read<OnboardingCubit>().toggleGoal(label),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppTheme.calmTeal.withValues(alpha: 0.12)
-                              : AppTheme.softGlass,
-                          border: Border.all(
-                            color: isSelected
-                                ? AppTheme.calmTeal
-                                : Colors.transparent,
-                            width: 1.5,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(emoji,
-                                style: const TextStyle(fontSize: 24)),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    label,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 15,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
-                                      color: isSelected
-                                          ? AppTheme.calmTeal
-                                          : AppTheme.starlight,
-                                    ),
-                                  ),
-                                  Text(
-                                    subtitle,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 12,
-                                      color: AppTheme.starlight
-                                          .withValues(alpha: 0.45),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: GestureDetector(
+                          onTap: () =>
+                              context.read<OnboardingCubit>().toggleGoal(label),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
                             ),
-                            if (isSelected)
-                              const Icon(Icons.check_circle_rounded,
-                                  size: 20, color: AppTheme.calmTeal),
-                          ],
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.calmTeal.withValues(alpha: 0.12)
+                                  : AppTheme.softGlass,
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppTheme.calmTeal
+                                    : Colors.transparent,
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  emoji,
+                                  style: const TextStyle(fontSize: 24),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        label,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 15,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.w500,
+                                          color: isSelected
+                                              ? AppTheme.calmTeal
+                                              : AppTheme.starlight,
+                                        ),
+                                      ),
+                                      Text(
+                                        subtitle,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          color: AppTheme.starlight.withValues(
+                                            alpha: 0.45,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  const Icon(
+                                    Icons.check_circle_rounded,
+                                    size: 20,
+                                    color: AppTheme.calmTeal,
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  )
+                      )
                       .animate()
-                      .fadeIn(
-                          delay: (80 * index).ms, duration: 400.ms)
+                      .fadeIn(delay: (80 * index).ms, duration: 400.ms)
                       .moveX(begin: 20, end: 0);
                 }).toList(),
               );
@@ -687,10 +701,7 @@ class _GoalPage extends StatelessWidget {
 
           const Spacer(flex: 2),
 
-          PrimaryButton(
-            label: 'Continue',
-            onPressed: onContinue,
-          ),
+          PrimaryButton(label: 'Continue', onPressed: onContinue),
           const Spacer(flex: 1),
         ],
       ),
