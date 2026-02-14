@@ -110,6 +110,7 @@ class RemoteQuote extends Equatable {
       id: id,
       text: content,
       author: author,
+      authorSlug: authorSlug,
       category: category,
       tags: tags,
       energy: energy,

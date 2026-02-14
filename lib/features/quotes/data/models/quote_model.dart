@@ -5,6 +5,7 @@ class QuoteModel extends Quote {
     required super.id,
     required super.text,
     required super.author,
+    super.authorSlug,
     required super.category,
     required super.tags,
     super.energy,

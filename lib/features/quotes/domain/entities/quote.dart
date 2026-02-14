@@ -4,6 +4,7 @@ class Quote extends Equatable {
   final String id;
   final String text;
   final String author;
+  final String? authorSlug;
   final String category;
   final List<String> tags;
   final int energy;
@@ -14,6 +15,7 @@ class Quote extends Equatable {
     required this.id,
     required this.text,
     required this.author,
+    this.authorSlug,
     required this.category,
     required this.tags,
     this.energy = 3,
@@ -26,6 +28,7 @@ class Quote extends Equatable {
     id,
     text,
     author,
+    authorSlug,
     category,
     tags,
     energy,
