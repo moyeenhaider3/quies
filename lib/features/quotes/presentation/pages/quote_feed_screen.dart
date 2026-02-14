@@ -13,6 +13,8 @@ import '../widgets/feed_audio_controller.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/welcome_back_overlay.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_bar.dart';
 
 class QuoteFeedScreen extends StatefulWidget {
   const QuoteFeedScreen({super.key});
@@ -107,7 +109,11 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
     if (music != null && isSoundOn) {
       _hasInitialAutoPlay = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _audioController.playForQuote(quote.id, music.previewUrl);
+        _audioController.playForQuote(
+          quote.id,
+          music.previewUrl,
+          quoteTextLength: quote.text.length,
+        );
       });
     }
   }
@@ -129,7 +135,11 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
       final isSoundOn = feedState.soundEnabledQuoteIds.contains(quote.id);
 
       if (music != null && isSoundOn) {
-        _audioController.playForQuote(quote.id, music.previewUrl);
+        _audioController.playForQuote(
+          quote.id,
+          music.previewUrl,
+          quoteTextLength: quote.text.length,
+        );
       }
 
       // Infinite scroll: load more when near the end
@@ -236,13 +246,13 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
             BlocBuilder<FeedBloc, FeedState>(
               builder: (context, state) {
                 if (state is FeedLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const ShimmerQuoteCard();
                 } else if (state is FeedError) {
                   return Center(child: Text(state.message));
                 } else if (state is FeedLoaded) {
                   // Trigger auto-play for first quote when music becomes available
                   _tryInitialAutoPlay(state);
-                  
+
                   return Column(
                     children: [
                       // Top spacing for status bar + top bar
@@ -295,6 +305,8 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                             _audioController.playForQuote(
                                               quote.id,
                                               music.previewUrl,
+                                              quoteTextLength:
+                                                  quote.text.length,
                                             );
                                           }
                                         }
@@ -314,16 +326,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                 bottom: 16,
                                 left: 0,
                                 right: 0,
-                                child: Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppTheme.calmTeal,
-                                    ),
-                                  ),
-                                ),
+                                child: ShimmerBar(width: 120, height: 4),
                               ),
                           ],
                         ),
@@ -347,85 +350,16 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                   if (state is FeedLoaded && state.feedItems.isNotEmpty) {
                     final firstItem = state.feedItems.first;
                     if (firstItem is QuoteFeedItem) {
-                      accentColor = AppTheme.getPrimaryColorForId(firstItem.quote.id);
+                      accentColor = AppTheme.getPrimaryColorForId(
+                        firstItem.quote.id,
+                      );
                     }
                   }
 
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Left side: Vertical column with settings on top, bookmarks below
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            onPressed: () => context.push('/settings'),
-                            icon: Icon(
-                              Icons.settings_rounded,
-                              color: accentColor.withValues(alpha: 0.9),
-                              size: 24,
-                            ),
-                            tooltip: 'Settings',
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.all(6),
-                            constraints: const BoxConstraints(),
-                          ),
-                          const SizedBox(height: 4),
-                          IconButton(
-                            onPressed: () => context.push('/bookmarks'),
-                            icon: Icon(
-                              Icons.collections_bookmark_rounded,
-                              color: accentColor.withValues(alpha: 0.9),
-                              size: 24,
-                            ),
-                            tooltip: 'Saved Quotes',
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.all(6),
-                            constraints: const BoxConstraints(),
-                          ),
-                        ],
-                      ),
-
-                      // Center: Expanded area with "Quies" branding centered
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              'Quies',
-                              style: GoogleFonts.playfairDisplay(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withValues(alpha: 0.9),
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                            // Subtle progress indicator below branding
-                            if (_quotesExplored > 0)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: AnimatedOpacity(
-                                  opacity: 1.0,
-                                  duration: const Duration(milliseconds: 600),
-                                  child: Text(
-                                    _quotesExplored == 1
-                                        ? '1 quote explored'
-                                        : '$_quotesExplored quotes explored',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 11,
-                                      color: Colors.white.withValues(alpha: 0.4),
-                                      fontWeight: FontWeight.w400,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-
-                      // Right side: Mood selector to balance the layout
+                      // Left side: Mood selector
                       BlocBuilder<FeedBloc, FeedState>(
                         buildWhen: (prev, curr) {
                           if (prev is FeedLoaded && curr is FeedLoaded) {
@@ -451,7 +385,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                               : '🎯';
                           return Column(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               GestureDetector(
                                 onTap: () => _showMoodSelector(context),
@@ -464,7 +398,9 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                     color: accentColor.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: accentColor.withValues(alpha: 0.25),
+                                      color: accentColor.withValues(
+                                        alpha: 0.25,
+                                      ),
                                     ),
                                   ),
                                   child: Text(
@@ -497,6 +433,79 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                             ],
                           );
                         },
+                      ),
+
+                      // Center: Expanded area with "Quies" branding centered
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              'Quies',
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.9),
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                            // Subtle progress indicator below branding
+                            if (_quotesExplored > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: AnimatedOpacity(
+                                  opacity: 1.0,
+                                  duration: const Duration(milliseconds: 600),
+                                  child: Text(
+                                    _quotesExplored == 1
+                                        ? '1 quote explored'
+                                        : '$_quotesExplored quotes explored',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      fontWeight: FontWeight.w400,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      // Right side: Vertical column with settings on top, bookmarks below
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: () => context.push('/settings'),
+                            icon: Icon(
+                              Icons.settings_rounded,
+                              color: accentColor.withValues(alpha: 0.9),
+                              size: 24,
+                            ),
+                            tooltip: 'Settings',
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                          ),
+                          const SizedBox(height: 4),
+                          IconButton(
+                            onPressed: () => context.push('/bookmarks'),
+                            icon: Icon(
+                              Icons.collections_bookmark_rounded,
+                              color: accentColor.withValues(alpha: 0.9),
+                              size: 24,
+                            ),
+                            tooltip: 'Saved Quotes',
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
                       ),
                     ],
                   );

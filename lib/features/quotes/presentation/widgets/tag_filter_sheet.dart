@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_line.dart';
 import '../../data/models/tag_model.dart';
 
 /// Bottom sheet for multi-select tag filtering.
@@ -154,22 +155,17 @@ class _TagFilterSheetState extends State<TagFilterSheet> {
           // Tag chips
           Expanded(
             child: widget.availableTags.isEmpty
-                ? Center(
+                ? const Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const CircularProgressIndicator(
-                          color: AppTheme.calmTeal,
-                          strokeWidth: 2,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Loading tags...',
-                          style: GoogleFonts.outfit(
-                            color: Colors.white54,
-                            fontSize: 14,
-                          ),
-                        ),
+                        ShimmerLine(width: double.infinity, height: 14),
+                        SizedBox(height: 8),
+                        ShimmerLine(width: double.infinity, height: 14),
+                        SizedBox(height: 8),
+                        ShimmerLine(width: double.infinity, height: 14),
+                        SizedBox(height: 8),
+                        ShimmerLine(width: 100, height: 14),
                       ],
                     ),
                   )

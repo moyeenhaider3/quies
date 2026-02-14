@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_circle.dart';
 
 /// Plays a music preview URL for ~12 seconds with play/pause controls.
 class AudioPlayerWidget extends StatefulWidget {
@@ -227,17 +228,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
 
   Widget _buildPlayButton() {
     if (_isLoading) {
-      return const SizedBox(
-        width: 44,
-        height: 44,
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: AppTheme.calmTeal,
-          ),
-        ),
-      );
+      return const ShimmerCircle(size: 44);
     }
 
     return GestureDetector(

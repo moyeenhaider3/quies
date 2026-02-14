@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../domain/entities/quote.dart';
 import '../bloc/feed_bloc.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 
 class BookmarksScreen extends StatelessWidget {
   const BookmarksScreen({super.key});
@@ -28,7 +29,7 @@ class BookmarksScreen extends StatelessWidget {
       body: BlocBuilder<FeedBloc, FeedState>(
         builder: (context, state) {
           if (state is! FeedLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerQuoteCard();
           }
 
           final bookmarkedQuotes = state.quotes

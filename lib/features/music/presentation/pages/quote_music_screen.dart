@@ -8,6 +8,7 @@ import '../bloc/quote_music_bloc.dart';
 import '../bloc/quote_music_event.dart';
 import '../bloc/quote_music_state.dart';
 import '../widgets/audio_player_widget.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 
 class QuoteMusicScreen extends StatelessWidget {
   const QuoteMusicScreen({super.key});
@@ -65,19 +66,7 @@ class QuoteMusicScreen extends StatelessWidget {
   }
 
   Widget _buildLoading(String genre) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(color: AppTheme.calmTeal),
-          const SizedBox(height: 20),
-          Text(
-            'Finding ${genre[0].toUpperCase()}${genre.substring(1)} vibes...',
-            style: GoogleFonts.outfit(color: Colors.white54, fontSize: 16),
-          ),
-        ],
-      ),
-    );
+    return const Center(child: ShimmerQuoteCard());
   }
 
   Widget _buildLoaded(

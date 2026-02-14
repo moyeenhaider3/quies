@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import 'shimmer/shimmer_bar.dart';
 
 class PrimaryButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -44,10 +45,7 @@ class PrimaryButton extends StatelessWidget {
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.starlight),
-                ),
+                child: ShimmerBar(width: 60, height: 4),
               )
             : Text(
                 label,
