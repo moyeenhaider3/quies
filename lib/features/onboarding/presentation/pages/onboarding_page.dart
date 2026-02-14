@@ -267,12 +267,14 @@ class _MoodPage extends StatelessWidget {
   const _MoodPage({required this.onContinue});
 
   static const _moods = [
-    ('Stressed', '😰', 'Feeling overwhelmed'),
-    ('Anxious', '😟', 'Restless thoughts'),
+    ('Calm', '😌', 'Seeking stillness'),
+    ('Energized', '⚡', 'Ready to conquer'),
+    ('Reflective', '🤔', 'Thinking deeply'),
+    ('Anxious', '😰', 'Feeling unsettled'),
+    ('Grateful', '🙏', 'Counting blessings'),
+    ('Hopeful', '🌅', 'Looking ahead'),
+    ('Stressed', '😣', 'Under pressure'),
     ('Tired', '😴', 'Low on energy'),
-    ('Sad', '😢', 'Feeling down'),
-    ('Calm', '😌', 'At ease'),
-    ('Okay', '🙂', 'Doing fine'),
   ];
 
   @override
@@ -412,14 +414,18 @@ class _ThemePage extends StatelessWidget {
   const _ThemePage({required this.onContinue});
 
   static const _themes = [
-    ('Wisdom', '📖'),
-    ('Nature', '🌿'),
-    ('Courage', '🦁'),
+    ('Inspirational', '✨'),
+    ('Motivational', '🔥'),
     ('Love', '❤️'),
-    ('Mindfulness', '🧘'),
-    ('Stoicism', '🏛️'),
-    ('Gratitude', '🙏'),
+    ('Wisdom', '📖'),
+    ('Happiness', '😊'),
+    ('Life', '🌱'),
+    ('Philosophy', '🏛️'),
+    ('Hope', '🌅'),
+    ('Courage', '🦁'),
     ('Humor', '😄'),
+    ('Nature', '🌿'),
+    ('Freedom', '🕊️'),
   ];
 
   @override
@@ -444,7 +450,7 @@ class _ThemePage extends StatelessWidget {
 
           const SizedBox(height: 12),
           Text(
-            'Choose topics that resonate with you',
+            'Pick topics for your personalized quote feed',
             style: GoogleFonts.outfit(
               fontSize: 14,
               color: AppTheme.starlight.withValues(alpha: 0.5),

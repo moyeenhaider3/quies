@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../data/services/user_preferences_service.dart';
 import '../../domain/entities/feed_item.dart';
 import '../bloc/feed_bloc.dart';
 import '../widgets/breathing_prompt_card.dart';
+import '../widgets/feed_audio_controller.dart';
+import '../widgets/filter_bar.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/welcome_back_overlay.dart';
 
@@ -27,18 +30,22 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
     ('Anxious', '😰'),
     ('Grateful', '🙏'),
     ('Hopeful', '🌅'),
+    ('Stressed', '😣'),
+    ('Tired', '😴'),
   ];
 
   bool _showWelcomeBack = false;
   int _quotesExplored = 0;
 
   late final UserPreferencesService _prefsService;
+  late final FeedAudioController _audioController;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _prefsService = getIt<UserPreferencesService>();
+    _audioController = FeedAudioController();
 
     // Check if returning after inactivity
     if (_prefsService.hasBeenInactiveFor(minutes: 30)) {
@@ -52,6 +59,7 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _audioController.dispose();
     super.dispose();
   }
 
@@ -59,12 +67,11 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // Record when the user left
+      _audioController.stop();
       _prefsService.setLastActiveTimestamp(
         DateTime.now().millisecondsSinceEpoch,
       );
     } else if (state == AppLifecycleState.resumed) {
-      // Check if they were away long enough
       if (_prefsService.hasBeenInactiveFor(minutes: 30)) {
         setState(() {
           _showWelcomeBack = true;
@@ -82,13 +89,29 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
     });
   }
 
-  void _onPageChanged(int index, FeedState feedState) {
-    if (feedState is FeedLoaded) {
-      final item = feedState.feedItems[index];
-      if (item is QuoteFeedItem) {
-        setState(() {
-          _quotesExplored++;
-        });
+  void _onPageChanged(int index, FeedLoaded feedState) {
+    final item = feedState.feedItems[index];
+
+    // Stop current audio on page change
+    _audioController.onPageChanged();
+
+    if (item is QuoteFeedItem) {
+      setState(() {
+        _quotesExplored++;
+      });
+
+      // Auto-play music if sound is enabled for this quote
+      final quote = item.quote;
+      final music = feedState.pairedMusic[quote.id];
+      final isSoundOn = feedState.soundEnabledQuoteIds.contains(quote.id);
+
+      if (music != null && isSoundOn) {
+        _audioController.playForQuote(quote.id, music.previewUrl);
+      }
+
+      // Infinite scroll: load more when near the end
+      if (index >= feedState.feedItems.length - 3) {
+        context.read<FeedBloc>().add(LoadMore());
       }
     }
   }
@@ -183,157 +206,260 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          BlocBuilder<FeedBloc, FeedState>(
-            builder: (context, state) {
-              if (state is FeedLoading) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (state is FeedError) {
-                return Center(child: Text(state.message));
-              } else if (state is FeedLoaded) {
-                return PageView.builder(
-                  scrollDirection: Axis.vertical,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: state.feedItems.length,
-                  onPageChanged: (index) => _onPageChanged(index, state),
-                  itemBuilder: (context, index) {
-                    final item = state.feedItems[index];
-                    return switch (item) {
-                      QuoteFeedItem(:final quote) => Center(
-                        child: QuoteCard(
-                          quote: quote,
-                          isLiked: state.likedIds.contains(quote.id),
-                          isBookmarked: state.bookmarkedIds.contains(quote.id),
+      body: FeedAudioScope(
+        controller: _audioController,
+        child: Stack(
+          children: [
+            BlocBuilder<FeedBloc, FeedState>(
+              builder: (context, state) {
+                if (state is FeedLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is FeedError) {
+                  return Center(child: Text(state.message));
+                } else if (state is FeedLoaded) {
+                  return Column(
+                    children: [
+                      // Top spacing for status bar + top bar
+                      SizedBox(height: MediaQuery.of(context).padding.top + 52),
+
+                      // Filter bar (contains mood + tags in unified row)
+                      const FilterBar(),
+                      const SizedBox(height: 8),
+
+                      // Feed
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            PageView.builder(
+                              scrollDirection: Axis.vertical,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: state.feedItems.length,
+                              onPageChanged: (index) =>
+                                  _onPageChanged(index, state),
+                              itemBuilder: (context, index) {
+                                final item = state.feedItems[index];
+                                return switch (item) {
+                                  QuoteFeedItem(:final quote) => Center(
+                                    child: QuoteCard(
+                                      quote: quote,
+                                      isLiked: state.likedIds.contains(
+                                        quote.id,
+                                      ),
+                                      isBookmarked: state.bookmarkedIds
+                                          .contains(quote.id),
+                                      music: state.pairedMusic[quote.id],
+                                      isSoundOn: state.soundEnabledQuoteIds
+                                          .contains(quote.id),
+                                      onToggleSound: () {
+                                        final wasEnabled = state
+                                            .soundEnabledQuoteIds
+                                            .contains(quote.id);
+                                        context.read<FeedBloc>().add(
+                                          ToggleSound(quote.id),
+                                        );
+                                        // Handle audio playback toggle
+                                        final music =
+                                            state.pairedMusic[quote.id];
+                                        if (music != null) {
+                                          if (wasEnabled) {
+                                            // Was ON, now turning OFF → stop
+                                            _audioController.stop();
+                                          } else {
+                                            // Was OFF, now turning ON → play
+                                            _audioController.playForQuote(
+                                              quote.id,
+                                              music.previewUrl,
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  BreathingPromptItem() => const Center(
+                                    child: BreathingPromptCard(),
+                                  ),
+                                };
+                              },
+                            ),
+
+                            // Loading more indicator
+                            if (state.isLoadingMore)
+                              const Positioned(
+                                bottom: 16,
+                                left: 0,
+                                right: 0,
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppTheme.calmTeal,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                      BreathingPromptItem() => const Center(
-                        child: BreathingPromptCard(),
-                      ),
-                    };
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
 
-          // Gentle progress indicator (top center)
-          if (_quotesExplored > 0)
+            // Top bar: mood + progress + bookmarks + settings
             Positioned(
-              top: MediaQuery.of(context).padding.top + 14,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: AnimatedOpacity(
-                  opacity: _quotesExplored > 0 ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 600),
-                  child: Text(
-                    _quotesExplored == 1
-                        ? '1 quote explored'
-                        : '$_quotesExplored quotes explored',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.4),
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 0.5,
-                    ),
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 16,
+              right: 16,
+              child: Row(
+                children: [
+                  // Mood selector
+                  BlocBuilder<FeedBloc, FeedState>(
+                    buildWhen: (prev, curr) {
+                      if (prev is FeedLoaded && curr is FeedLoaded) {
+                        return prev.currentMood != curr.currentMood ||
+                            prev.isOffline != curr.isOffline;
+                      }
+                      return true;
+                    },
+                    builder: (context, state) {
+                      final mood = state is FeedLoaded
+                          ? state.currentMood
+                          : null;
+                      final isOffline = state is FeedLoaded
+                          ? state.isOffline
+                          : false;
+                      final emoji = mood != null
+                          ? _moods
+                                .firstWhere(
+                                  (e) => e.$1 == mood,
+                                  orElse: () => ('', '🎯'),
+                                )
+                                .$2
+                          : '🎯';
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _showMoodSelector(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    emoji,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  if (mood != null) ...[
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      mood,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 13,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (isOffline) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Offline',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
-                ),
+
+                  const Spacer(),
+
+                  // Gentle progress indicator
+                  if (_quotesExplored > 0)
+                    AnimatedOpacity(
+                      opacity: 1.0,
+                      duration: const Duration(milliseconds: 600),
+                      child: Text(
+                        _quotesExplored == 1
+                            ? '1 quote explored'
+                            : '$_quotesExplored quotes explored',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+
+                  // Right actions
+                  IconButton(
+                    onPressed: () => context.push('/bookmarks'),
+                    icon: const Icon(
+                      Icons.collections_bookmark_rounded,
+                      color: Colors.white70,
+                      size: 24,
+                    ),
+                    tooltip: 'Saved Quotes',
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: () => context.push('/settings'),
+                    icon: const Icon(
+                      Icons.settings_rounded,
+                      color: Colors.white70,
+                      size: 24,
+                    ),
+                    tooltip: 'Settings',
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
             ),
 
-          // Top bar: mood selector + bookmarks
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 16,
-            child: BlocBuilder<FeedBloc, FeedState>(
-              buildWhen: (prev, curr) {
-                if (prev is FeedLoaded && curr is FeedLoaded) {
-                  return prev.currentMood != curr.currentMood;
-                }
-                return true;
-              },
-              builder: (context, state) {
-                final mood = state is FeedLoaded ? state.currentMood : null;
-                final emoji = mood != null
-                    ? _moods
-                          .firstWhere(
-                            (e) => e.$1 == mood,
-                            orElse: () => ('', '🎯'),
-                          )
-                          .$2
-                    : '🎯';
-                return GestureDetector(
-                  onTap: () => _showMoodSelector(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(emoji, style: const TextStyle(fontSize: 18)),
-                        if (mood != null) ...[
-                          const SizedBox(width: 6),
-                          Text(
-                            mood,
-                            style: GoogleFonts.outfit(
-                              fontSize: 13,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right: 16,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      onPressed: () => context.push('/bookmarks'),
-                      icon: Icon(
-                        Icons.collections_bookmark_rounded,
-                        color: Colors.white70,
-                        size: 28,
-                      ),
-                      tooltip: 'Saved Quotes',
-                    ),
-                    IconButton(
-                      onPressed: () => context.push('/settings'),
-                      icon: Icon(
-                        Icons.settings_rounded,
-                        color: Colors.white70,
-                        size: 28,
-                      ),
-                      tooltip: 'Settings',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Welcome back overlay
-          if (_showWelcomeBack)
-            WelcomeBackOverlay(onDismiss: _dismissWelcomeBack),
-        ],
+            // Welcome back overlay
+            if (_showWelcomeBack)
+              WelcomeBackOverlay(onDismiss: _dismissWelcomeBack),
+          ],
+        ),
       ),
     );
   }

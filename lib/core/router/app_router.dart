@@ -1,15 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 
 import '../../data/services/user_preferences_service.dart';
+import '../../features/music/presentation/bloc/quote_music_bloc.dart';
+import '../../features/music/presentation/pages/genre_selection_screen.dart';
+import '../../features/music/presentation/pages/quote_music_screen.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/quotes/presentation/bloc/feed_bloc.dart';
 import '../../features/quotes/presentation/pages/bookmarks_screen.dart';
 import '../../features/quotes/presentation/pages/quote_feed_screen.dart';
 import '../../features/quotes/presentation/pages/settings_screen.dart';
 import '../di/injection.dart';
+import '../network/api_logger.dart';
 
 @module
 abstract class RegisterModule {
@@ -38,7 +43,9 @@ abstract class RegisterModule {
       ShellRoute(
         builder: (context, state, child) {
           return BlocProvider(
-            create: (_) => getIt<FeedBloc>()..add(LoadFeed()),
+            create: (_) => getIt<FeedBloc>()
+              ..add(LoadFeed())
+              ..add(LoadTags()),
             child: child,
           );
         },
@@ -57,10 +64,32 @@ abstract class RegisterModule {
           ),
         ],
       ),
+      // Music MVP routes — wrapped in their own ShellRoute for shared QuoteMusicBloc
+      ShellRoute(
+        builder: (context, state, child) {
+          return BlocProvider(
+            create: (_) => getIt<QuoteMusicBloc>(),
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/genres',
+            builder: (context, state) => const GenreSelectionScreen(),
+          ),
+          GoRoute(
+            path: '/quote-music',
+            builder: (context, state) => const QuoteMusicScreen(),
+          ),
+        ],
+      ),
     ],
   );
 
   @preResolve
   @Named('userBox')
   Future<Box<dynamic>> get userBox => Hive.openBox<dynamic>('userBox');
+
+  @lazySingleton
+  http.Client get httpClient => LoggingHttpClient(http.Client());
 }

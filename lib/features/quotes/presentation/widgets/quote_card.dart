@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import '../../../music/domain/entities/music_preview.dart';
 import '../../domain/entities/quote.dart';
 import '../bloc/feed_bloc.dart';
 
@@ -13,12 +14,18 @@ class QuoteCard extends StatelessWidget {
   final Quote quote;
   final bool isLiked;
   final bool isBookmarked;
+  final MusicPreview? music;
+  final bool isSoundOn;
+  final VoidCallback? onToggleSound;
 
   const QuoteCard({
     super.key,
     required this.quote,
     this.isLiked = false,
     this.isBookmarked = false,
+    this.music,
+    this.isSoundOn = false,
+    this.onToggleSound,
   });
 
   // Generate a consistent gradient based on the quote ID length or hash
@@ -111,31 +118,89 @@ class QuoteCard extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
-                  // Tags/Category (Optional badge)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    child: Text(
-                      quote.category.toUpperCase(),
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        color: Colors.white60,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 600.ms),
+                  // Tags (multi-tag from API, up to 3)
+                  if (quote.tags.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      alignment: WrapAlignment.center,
+                      children: quote.tags.take(3).map((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          child: Text(
+                            tag,
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              color: Colors.white60,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ).animate().fadeIn(delay: 600.ms),
 
                   const Spacer(),
+
+                  // Speaker icon (floating, only shown when music available)
+                  if (music != null)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child:
+                            GestureDetector(
+                                  onTap: onToggleSound,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSoundOn
+                                          ? AppTheme.calmTeal.withValues(
+                                              alpha: 0.25,
+                                            )
+                                          : Colors.white.withValues(alpha: 0.1),
+                                      border: Border.all(
+                                        color: isSoundOn
+                                            ? AppTheme.calmTeal.withValues(
+                                                alpha: 0.5,
+                                              )
+                                            : Colors.white.withValues(
+                                                alpha: 0.15,
+                                              ),
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      isSoundOn
+                                          ? Icons.volume_up_rounded
+                                          : Icons.volume_off_rounded,
+                                      color: isSoundOn
+                                          ? AppTheme.calmTeal
+                                          : Colors.white38,
+                                      size: 24,
+                                    ),
+                                  ),
+                                )
+                                .animate()
+                                .fadeIn(duration: 400.ms)
+                                .scale(
+                                  begin: const Offset(0.8, 0.8),
+                                  end: const Offset(1, 1),
+                                  curve: Curves.easeOutBack,
+                                ),
+                      ),
+                    ),
 
                   // Actions Row
                   Padding(

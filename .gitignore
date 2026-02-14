@@ -47,4 +47,5 @@ app.*.map.json
 .planning/
 docs/
 **.txt
+assets/data/**.json
 

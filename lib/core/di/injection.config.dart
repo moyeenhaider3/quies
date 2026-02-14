@@ -11,15 +11,21 @@
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:go_router/go_router.dart' as _i583;
 import 'package:hive/hive.dart' as _i979;
+import 'package:http/http.dart' as _i519;
 import 'package:injectable/injectable.dart' as _i526;
 
 import '../../data/services/content_matching_service.dart' as _i963;
 import '../../data/services/notification_service.dart' as _i670;
 import '../../data/services/user_preferences_service.dart' as _i402;
+import '../../features/music/data/services/cache_service.dart' as _i736;
+import '../../features/music/data/services/music_service.dart' as _i829;
+import '../../features/music/presentation/bloc/quote_music_bloc.dart' as _i33;
 import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart'
     as _i807;
 import '../../features/quotes/data/datasources/quote_local_data_source.dart'
     as _i409;
+import '../../features/quotes/data/datasources/quote_remote_data_source.dart'
+    as _i210;
 import '../../features/quotes/data/repositories/quote_repository_impl.dart'
     as _i57;
 import '../../features/quotes/domain/repositories/quote_repository.dart'
@@ -29,44 +35,72 @@ import '../router/app_router.dart' as _i81;
 import '../theme/theme_cubit.dart' as _i611;
 
 extension GetItInjectableX on _i174.GetIt {
-// initializes the registration of main-scope dependencies inside of GetIt
+  // initializes the registration of main-scope dependencies inside of GetIt
   Future<_i174.GetIt> init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
   }) async {
-    final gh = _i526.GetItHelper(
-      this,
-      environment,
-      environmentFilter,
-    );
+    final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
+    gh.lazySingleton<_i519.Client>(() => registerModule.httpClient);
     gh.lazySingleton<_i963.ContentMatchingService>(
-        () => _i963.ContentMatchingService());
+      () => _i963.ContentMatchingService(),
+    );
     await gh.factoryAsync<_i979.Box<dynamic>>(
       () => registerModule.userBox,
       instanceName: 'userBox',
       preResolve: true,
     );
+    gh.lazySingleton<_i829.MusicService>(
+      () => _i829.MusicService(gh<_i519.Client>()),
+    );
     gh.lazySingleton<_i409.QuoteLocalDataSource>(
-        () => _i409.QuoteLocalDataSourceImpl());
+      () => _i409.QuoteLocalDataSourceImpl(),
+    );
+    gh.lazySingleton<_i210.QuoteRemoteDataSource>(
+      () => _i210.QuoteRemoteDataSource(gh<_i519.Client>()),
+    );
     gh.lazySingleton<_i11.QuoteRepository>(
-        () => _i57.QuoteRepositoryImpl(gh<_i409.QuoteLocalDataSource>()));
-    gh.lazySingleton<_i402.UserPreferencesService>(() =>
-        _i402.UserPreferencesService(
-            gh<_i979.Box<dynamic>>(instanceName: 'userBox')));
+      () => _i57.QuoteRepositoryImpl(
+        gh<_i409.QuoteLocalDataSource>(),
+        gh<_i210.QuoteRemoteDataSource>(),
+      ),
+    );
+    gh.lazySingleton<_i402.UserPreferencesService>(
+      () => _i402.UserPreferencesService(
+        gh<_i979.Box<dynamic>>(instanceName: 'userBox'),
+      ),
+    );
+    gh.lazySingleton<_i736.CacheService>(
+      () => _i736.CacheService(gh<_i979.Box<dynamic>>(instanceName: 'userBox')),
+    );
     gh.lazySingleton<_i670.NotificationService>(
-        () => _i670.NotificationService(gh<_i402.UserPreferencesService>()));
+      () => _i670.NotificationService(gh<_i402.UserPreferencesService>()),
+    );
     gh.factory<_i807.OnboardingCubit>(
-        () => _i807.OnboardingCubit(gh<_i402.UserPreferencesService>()));
+      () => _i807.OnboardingCubit(gh<_i402.UserPreferencesService>()),
+    );
     gh.singleton<_i583.GoRouter>(
-        () => registerModule.router(gh<_i402.UserPreferencesService>()));
+      () => registerModule.router(gh<_i402.UserPreferencesService>()),
+    );
+    gh.factory<_i33.QuoteMusicBloc>(
+      () => _i33.QuoteMusicBloc(
+        gh<_i210.QuoteRemoteDataSource>(),
+        gh<_i829.MusicService>(),
+        gh<_i736.CacheService>(),
+      ),
+    );
     gh.factory<_i611.ThemeCubit>(
-        () => _i611.ThemeCubit(gh<_i402.UserPreferencesService>()));
-    gh.factory<_i378.FeedBloc>(() => _i378.FeedBloc(
-          gh<_i11.QuoteRepository>(),
-          gh<_i402.UserPreferencesService>(),
-          gh<_i963.ContentMatchingService>(),
-        ));
+      () => _i611.ThemeCubit(gh<_i402.UserPreferencesService>()),
+    );
+    gh.factory<_i378.FeedBloc>(
+      () => _i378.FeedBloc(
+        gh<_i11.QuoteRepository>(),
+        gh<_i402.UserPreferencesService>(),
+        gh<_i963.ContentMatchingService>(),
+        gh<_i829.MusicService>(),
+      ),
+    );
     return this;
   }
 }
