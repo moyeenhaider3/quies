@@ -15,6 +15,7 @@ import '../widgets/quote_card.dart';
 import '../widgets/welcome_back_overlay.dart';
 import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 import '../../../../presentation/widgets/shimmer/shimmer_bar.dart';
+import '../../../music/data/genre_mapping.dart';
 
 class QuoteFeedScreen extends StatefulWidget {
   const QuoteFeedScreen({super.key});
@@ -187,43 +188,86 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                   runSpacing: 12,
                   children: _moods.map((entry) {
                     final (label, emoji) = entry;
-                    return GestureDetector(
-                      onTap: () {
-                        context.read<FeedBloc>().add(ChangeMood(label));
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.1)
-                                : Colors.black.withValues(alpha: 0.08),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(emoji, style: const TextStyle(fontSize: 22)),
-                            const SizedBox(width: 8),
-                            Text(
-                              label,
-                              style: GoogleFonts.outfit(
-                                fontSize: 15,
-                                color: isDark ? Colors.white : Colors.black87,
-                                fontWeight: FontWeight.w500,
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            context.read<FeedBloc>().add(ChangeMood(label));
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.black.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.08),
                               ),
                             ),
-                          ],
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(emoji, style: const TextStyle(fontSize: 22)),
+                                const SizedBox(width: 8),
+                                Text(
+                                  label,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                        if (moodToTagsMap.containsKey(label)) ...[
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: (moodToTagsMap[label] ?? []).map((tag) {
+                              return GestureDetector(
+                                onTap: () {
+                                  context.read<FeedBloc>().add(ApplyTagFilter([tag]));
+                                  Navigator.pop(context);
+                                },
+                                child: Container(
+                                  constraints: const BoxConstraints(minHeight: 28),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.08)
+                                          : Colors.black.withValues(alpha: 0.04),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    tag,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      color: isDark ? Colors.white38 : Colors.black38,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ],
                     );
                   }).toList(),
                 ),
