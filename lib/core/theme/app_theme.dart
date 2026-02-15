@@ -131,6 +131,21 @@ class AppTheme {
         surface: lightSurface,
         onSurface: lightOnSurface,
       ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: lightBg,
+        foregroundColor: lightOnSurface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      iconTheme: IconThemeData(
+        color: lightOnSurface.withValues(alpha: 0.7),
+      ),
+      cardTheme: CardThemeData(
+        color: lightSurface,
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.08),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
       textTheme: TextTheme(
         displayLarge: GoogleFonts.playfairDisplay(
           fontSize: 32,

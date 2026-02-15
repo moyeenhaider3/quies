@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../presentation/widgets/shimmer/shimmer_line.dart';
-import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 import '../../data/models/author_detail_model.dart';
 import '../../data/models/remote_quote_model.dart';
 import '../../domain/repositories/quote_repository.dart';
@@ -78,7 +77,8 @@ class _AuthorDetailModalState extends State<AuthorDetailModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final modalHeight = MediaQuery.of(context).size.height * 0.8;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final modalHeight = screenHeight * 0.72;
     final modalWidth = MediaQuery.of(context).size.width - 48;
 
     return Material(
@@ -89,44 +89,55 @@ class _AuthorDetailModalState extends State<AuthorDetailModal> {
         child: Center(
           child: GestureDetector(
             onTap: () {}, // absorb taps on modal body
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Modal container
-                Container(
-                  height: modalHeight,
-                  width: modalWidth,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.black.withValues(alpha: 0.06),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight:
+                    screenHeight -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    32,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Modal container
+                    Container(
+                      height: modalHeight,
+                      width: modalWidth,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: _buildContent(isDark, modalHeight),
+                      ),
                     ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: _buildContent(isDark, modalHeight),
-                  ),
+                    // Close button below modal
+                    const SizedBox(height: 16),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: isDark ? Colors.white : const Color(0xB3000000),
+                        size: 28,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.08),
+                        fixedSize: const Size(48, 48),
+                      ),
+                    ),
+                  ],
                 ),
-                // Close button below modal
-                const SizedBox(height: 16),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(
-                    Icons.close_rounded,
-                    color: isDark ? Colors.white : const Color(0xB3000000),
-                    size: 28,
-                  ),
-                  style: IconButton.styleFrom(
-                    backgroundColor: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.08),
-                    fixedSize: const Size(48, 48),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -159,8 +170,16 @@ class _AuthorDetailModalState extends State<AuthorDetailModal> {
           const ShimmerLine(width: double.infinity, height: 14),
           const SizedBox(height: 8),
           const ShimmerLine(width: 220, height: 14),
-          const Spacer(),
-          const ShimmerQuoteCard(),
+          const SizedBox(height: 40),
+          // Use bounded shimmer lines instead of ShimmerQuoteCard
+          // (ShimmerQuoteCard uses infinite height which crashes in Column)
+          const ShimmerLine(width: double.infinity, height: 14),
+          const SizedBox(height: 8),
+          const ShimmerLine(width: double.infinity, height: 14),
+          const SizedBox(height: 8),
+          const ShimmerLine(width: 180, height: 14),
+          const SizedBox(height: 16),
+          const ShimmerLine(width: 120, height: 12),
         ],
       ),
     );

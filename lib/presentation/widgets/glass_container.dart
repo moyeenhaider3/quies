@@ -1,6 +1,7 @@
-
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_theme.dart';
 
 class GlassContainer extends StatelessWidget {
@@ -25,6 +26,14 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillColor = isDark
+        ? AppTheme.starlight.withValues(alpha: opacity)
+        : Colors.black.withValues(alpha: opacity * 0.25);
+    final borderColor = isDark
+        ? AppTheme.starlight.withValues(alpha: 0.1)
+        : Colors.black.withValues(alpha: 0.06);
+
     return Container(
       margin: margin,
       child: GestureDetector(
@@ -37,12 +46,9 @@ class GlassContainer extends StatelessWidget {
             child: Container(
               padding: padding ?? const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.starlight.withValues(alpha: opacity),
+                color: fillColor,
                 borderRadius: borderRadius ?? BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppTheme.starlight.withValues(alpha: 0.1),
-                  width: 1,
-                ),
+                border: Border.all(color: borderColor, width: 1),
               ),
               child: child,
             ),

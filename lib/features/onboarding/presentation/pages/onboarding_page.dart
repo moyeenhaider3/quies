@@ -288,123 +288,141 @@ class _MoodPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 1),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
 
-          Text(
-            'How are you\nfeeling right now?',
-            style: GoogleFonts.playfairDisplay(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.starlight,
-              height: 1.3,
-            ),
-            textAlign: TextAlign.center,
-          ).animate().fadeIn(duration: 600.ms),
+                  Text(
+                    'How are you\nfeeling right now?',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.starlight,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn(duration: 600.ms),
 
-          const SizedBox(height: 12),
-          Text(
-            'This helps us personalize your experience',
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              color: AppTheme.starlight.withValues(alpha: 0.5),
-            ),
-            textAlign: TextAlign.center,
-          ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+                  const SizedBox(height: 12),
+                  Text(
+                    'This helps us personalize your experience',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      color: AppTheme.starlight.withValues(alpha: 0.5),
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
 
-          const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-          BlocBuilder<OnboardingCubit, OnboardingState>(
-            builder: (context, state) {
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.center,
-                children: _moods.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final (label, emoji, subtitle) = entry.value;
-                  final isSelected = state.selectedMood == label;
-                  return GestureDetector(
-                        onTap: () =>
-                            context.read<OnboardingCubit>().updateMood(label),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          width: (MediaQuery.of(context).size.width - 72) / 2,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppTheme.calmTeal.withValues(alpha: 0.15)
-                                : AppTheme.softGlass,
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppTheme.calmTeal
-                                  : Colors.transparent,
-                              width: 1.5,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(emoji, style: const TextStyle(fontSize: 28)),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      label,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 15,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w600
-                                            : FontWeight.w500,
-                                        color: isSelected
-                                            ? AppTheme.calmTeal
-                                            : AppTheme.starlight,
-                                      ),
+                  BlocBuilder<OnboardingCubit, OnboardingState>(
+                    builder: (context, state) {
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: _moods.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final (label, emoji, subtitle) = entry.value;
+                          final isSelected = state.selectedMood == label;
+                          return GestureDetector(
+                                onTap: () => context
+                                    .read<OnboardingCubit>()
+                                    .updateMood(label),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 250),
+                                  width:
+                                      (MediaQuery.of(context).size.width - 72) /
+                                      2,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppTheme.calmTeal.withValues(
+                                            alpha: 0.15,
+                                          )
+                                        : AppTheme.softGlass,
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppTheme.calmTeal
+                                          : Colors.transparent,
+                                      width: 1.5,
                                     ),
-                                    Text(
-                                      subtitle,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        color: AppTheme.starlight.withValues(
-                                          alpha: 0.45,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        emoji,
+                                        style: const TextStyle(fontSize: 28),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              label,
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 15,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                color: isSelected
+                                                    ? AppTheme.calmTeal
+                                                    : AppTheme.starlight,
+                                              ),
+                                            ),
+                                            Text(
+                                              subtitle,
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 11,
+                                                color: AppTheme.starlight
+                                                    .withValues(alpha: 0.45),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .animate()
-                      .fadeIn(delay: (100 * index).ms, duration: 400.ms)
-                      .moveY(begin: 10, end: 0);
-                }).toList(),
-              );
-            },
+                              )
+                              .animate()
+                              .fadeIn(delay: (100 * index).ms, duration: 400.ms)
+                              .moveY(begin: 10, end: 0);
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
           ),
-
-          const Spacer(flex: 2),
 
           BlocBuilder<OnboardingCubit, OnboardingState>(
             builder: (context, state) {
               final isEnabled = state.selectedMood != null;
-              return AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: isEnabled ? 1.0 : 0.4,
-                child: PrimaryButton(
-                  label: 'Continue',
-                  onPressed: isEnabled ? onContinue : () {},
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: isEnabled ? 1.0 : 0.4,
+                  child: PrimaryButton(
+                    label: 'Continue',
+                    onPressed: isEnabled ? onContinue : () {},
+                  ),
                 ),
               );
             },
           ),
-          const Spacer(flex: 1),
         ],
       ),
     );
@@ -441,124 +459,142 @@ class _ThemePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 1),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
 
-          Text(
-            'What speaks\nto your soul?',
-            style: GoogleFonts.playfairDisplay(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.starlight,
-              height: 1.3,
-            ),
-            textAlign: TextAlign.center,
-          ).animate().fadeIn(duration: 600.ms),
+                  Text(
+                    'What speaks\nto your soul?',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.starlight,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn(duration: 600.ms),
 
-          const SizedBox(height: 12),
-          Text(
-            'Pick topics for your personalized quote feed',
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              color: AppTheme.starlight.withValues(alpha: 0.5),
-            ),
-            textAlign: TextAlign.center,
-          ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Pick topics for your personalized quote feed',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      color: AppTheme.starlight.withValues(alpha: 0.5),
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
 
-          const SizedBox(height: 36),
+                  const SizedBox(height: 36),
 
-          BlocBuilder<OnboardingCubit, OnboardingState>(
-            builder: (context, state) {
-              return Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: WrapAlignment.center,
-                children: _themes.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final (label, emoji) = entry.value;
-                  final isSelected = state.selectedThemes.contains(label);
-                  return GestureDetector(
-                        onTap: () =>
-                            context.read<OnboardingCubit>().toggleTheme(label),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppTheme.calmTeal.withValues(alpha: 0.15)
-                                : AppTheme.softGlass,
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppTheme.calmTeal
-                                  : Colors.transparent,
-                              width: 1.5,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(emoji, style: const TextStyle(fontSize: 20)),
-                              const SizedBox(width: 8),
-                              Text(
-                                label,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 14,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
-                                  color: isSelected
-                                      ? AppTheme.calmTeal
-                                      : AppTheme.starlight,
+                  BlocBuilder<OnboardingCubit, OnboardingState>(
+                    builder: (context, state) {
+                      return Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        alignment: WrapAlignment.center,
+                        children: _themes.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final (label, emoji) = entry.value;
+                          final isSelected = state.selectedThemes.contains(
+                            label,
+                          );
+                          return GestureDetector(
+                                onTap: () => context
+                                    .read<OnboardingCubit>()
+                                    .toggleTheme(label),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 250),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppTheme.calmTeal.withValues(
+                                            alpha: 0.15,
+                                          )
+                                        : AppTheme.softGlass,
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppTheme.calmTeal
+                                          : Colors.transparent,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        emoji,
+                                        style: const TextStyle(fontSize: 20),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        label,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 14,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.w500,
+                                          color: isSelected
+                                              ? AppTheme.calmTeal
+                                              : AppTheme.starlight,
+                                        ),
+                                      ),
+                                      if (isSelected) ...[
+                                        const SizedBox(width: 6),
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          size: 16,
+                                          color: AppTheme.calmTeal,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              if (isSelected) ...[
-                                const SizedBox(width: 6),
-                                const Icon(
-                                  Icons.check_circle_rounded,
-                                  size: 16,
-                                  color: AppTheme.calmTeal,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      )
-                      .animate()
-                      .fadeIn(delay: (80 * index).ms, duration: 400.ms)
-                      .scale(begin: const Offset(0.9, 0.9));
-                }).toList(),
-              );
-            },
+                              )
+                              .animate()
+                              .fadeIn(delay: (80 * index).ms, duration: 400.ms)
+                              .scale(begin: const Offset(0.9, 0.9));
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
           ),
-
-          const Spacer(flex: 2),
 
           BlocBuilder<OnboardingCubit, OnboardingState>(
             builder: (context, state) {
               final count = state.selectedThemes.length;
-              return Column(
-                children: [
-                  if (count > 0)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        '$count selected',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          color: AppTheme.calmTeal.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w500,
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  children: [
+                    if (count > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          '$count selected',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            color: AppTheme.calmTeal.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                  PrimaryButton(label: 'Continue', onPressed: onContinue),
-                ],
+                    PrimaryButton(label: 'Continue', onPressed: onContinue),
+                  ],
+                ),
               );
             },
           ),
-          const Spacer(flex: 1),
         ],
       ),
     );
@@ -589,120 +625,134 @@ class _GoalPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 1),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
 
-          Text(
-            'What brings\nyou here?',
-            style: GoogleFonts.playfairDisplay(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.starlight,
-              height: 1.3,
-            ),
-            textAlign: TextAlign.center,
-          ).animate().fadeIn(duration: 600.ms),
+                  Text(
+                    'What brings\nyou here?',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.starlight,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn(duration: 600.ms),
 
-          const SizedBox(height: 12),
-          Text(
-            'Choose your intention — pick as many as you like',
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              color: AppTheme.starlight.withValues(alpha: 0.5),
-            ),
-            textAlign: TextAlign.center,
-          ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Choose your intention — pick as many as you like',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      color: AppTheme.starlight.withValues(alpha: 0.5),
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
 
-          const SizedBox(height: 36),
+                  const SizedBox(height: 36),
 
-          BlocBuilder<OnboardingCubit, OnboardingState>(
-            builder: (context, state) {
-              return Column(
-                children: _goals.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final (label, emoji, subtitle) = entry.value;
-                  final isSelected = state.selectedGoals.contains(label);
-                  return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: GestureDetector(
-                          onTap: () =>
-                              context.read<OnboardingCubit>().toggleGoal(label),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppTheme.calmTeal.withValues(alpha: 0.12)
-                                  : AppTheme.softGlass,
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppTheme.calmTeal
-                                    : Colors.transparent,
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  emoji,
-                                  style: const TextStyle(fontSize: 24),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        label,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 15,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w500,
-                                          color: isSelected
-                                              ? AppTheme.calmTeal
-                                              : AppTheme.starlight,
-                                        ),
+                  BlocBuilder<OnboardingCubit, OnboardingState>(
+                    builder: (context, state) {
+                      return Column(
+                        children: _goals.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final (label, emoji, subtitle) = entry.value;
+                          final isSelected = state.selectedGoals.contains(
+                            label,
+                          );
+                          return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: GestureDetector(
+                                  onTap: () => context
+                                      .read<OnboardingCubit>()
+                                      .toggleGoal(label),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 250),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppTheme.calmTeal.withValues(
+                                              alpha: 0.12,
+                                            )
+                                          : AppTheme.softGlass,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.calmTeal
+                                            : Colors.transparent,
+                                        width: 1.5,
                                       ),
-                                      Text(
-                                        subtitle,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          color: AppTheme.starlight.withValues(
-                                            alpha: 0.45,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          emoji,
+                                          style: const TextStyle(fontSize: 24),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                label,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 15,
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w500,
+                                                  color: isSelected
+                                                      ? AppTheme.calmTeal
+                                                      : AppTheme.starlight,
+                                                ),
+                                              ),
+                                              Text(
+                                                subtitle,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 12,
+                                                  color: AppTheme.starlight
+                                                      .withValues(alpha: 0.45),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                        if (isSelected)
+                                          const Icon(
+                                            Icons.check_circle_rounded,
+                                            size: 20,
+                                            color: AppTheme.calmTeal,
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                if (isSelected)
-                                  const Icon(
-                                    Icons.check_circle_rounded,
-                                    size: 20,
-                                    color: AppTheme.calmTeal,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                      .animate()
-                      .fadeIn(delay: (80 * index).ms, duration: 400.ms)
-                      .moveX(begin: 20, end: 0);
-                }).toList(),
-              );
-            },
+                              )
+                              .animate()
+                              .fadeIn(delay: (80 * index).ms, duration: 400.ms)
+                              .moveX(begin: 20, end: 0);
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
           ),
 
-          const Spacer(flex: 2),
-
-          PrimaryButton(label: 'Continue', onPressed: onContinue),
-          const Spacer(flex: 1),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: PrimaryButton(label: 'Continue', onPressed: onContinue),
+          ),
         ],
       ),
     );

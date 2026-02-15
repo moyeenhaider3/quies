@@ -41,6 +41,20 @@ class FilterBar extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
+                  // Clear All chip (first when filters active)
+                  if (hasFilters) ...[
+                    _FilterChip(
+                      label: 'Clear All',
+                      icon: Icons.close_rounded,
+                      isActive: false,
+                      isClear: true,
+                      onTap: () {
+                        context.read<FeedBloc>().add(ClearFilters());
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+
                   // Tags chip
                   _FilterChip(
                     label: state.activeTags.isNotEmpty
@@ -50,20 +64,6 @@ class FilterBar extends StatelessWidget {
                     isActive: state.activeTags.isNotEmpty,
                     onTap: () => _showTagSheet(context, state),
                   ),
-
-                  // Clear button
-                  if (hasFilters) ...[
-                    const SizedBox(width: 10),
-                    _FilterChip(
-                      label: 'Clear',
-                      icon: Icons.close_rounded,
-                      isActive: false,
-                      isClear: true,
-                      onTap: () {
-                        context.read<FeedBloc>().add(ClearFilters());
-                      },
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -152,6 +152,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -160,13 +161,13 @@ class _FilterChip extends StatelessWidget {
           color: isActive
               ? AppTheme.calmTeal.withValues(alpha: 0.2)
               : isClear
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.1),
+              ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04))
+              : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.06)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isActive
                 ? AppTheme.calmTeal.withValues(alpha: 0.4)
-                : Colors.white.withValues(alpha: 0.12),
+                : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.1)),
           ),
         ),
         child: Row(
@@ -175,14 +176,14 @@ class _FilterChip extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isActive ? AppTheme.calmTeal : Colors.white54,
+              color: isActive ? AppTheme.calmTeal : (isDark ? Colors.white54 : Colors.black54),
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.outfit(
                 fontSize: 13,
-                color: isActive ? AppTheme.calmTeal : Colors.white70,
+                color: isActive ? AppTheme.calmTeal : (isDark ? Colors.white70 : Colors.black87),
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
               ),
             ),

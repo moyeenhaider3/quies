@@ -128,56 +128,63 @@ class QuoteCard extends StatelessWidget {
 
                   const Spacer(),
 
-                  // Speaker icon (floating, only shown when music available)
-                  if (music != null)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child:
-                            GestureDetector(
-                                  onTap: onToggleSound,
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isSoundOn
+                  // Speaker icon (always visible, disabled state when no music)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child:
+                          GestureDetector(
+                                onTap: music != null ? onToggleSound : null,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: music == null
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : isSoundOn
+                                        ? AppTheme.calmTeal.withValues(
+                                            alpha: 0.25,
+                                          )
+                                        : Colors.white.withValues(alpha: 0.1),
+                                    border: Border.all(
+                                      color: music == null
+                                          ? Colors.white.withValues(alpha: 0.08)
+                                          : isSoundOn
                                           ? AppTheme.calmTeal.withValues(
-                                              alpha: 0.25,
+                                              alpha: 0.5,
                                             )
-                                          : Colors.white.withValues(alpha: 0.1),
-                                      border: Border.all(
-                                        color: isSoundOn
-                                            ? AppTheme.calmTeal.withValues(
-                                                alpha: 0.5,
-                                              )
-                                            : Colors.white.withValues(
-                                                alpha: 0.15,
-                                              ),
-                                      ),
-                                    ),
-                                    child: Icon(
-                                      isSoundOn
-                                          ? Icons.volume_up_rounded
-                                          : Icons.volume_off_rounded,
-                                      color: isSoundOn
-                                          ? AppTheme.calmTeal
-                                          : Colors.white38,
-                                      size: 24,
+                                          : Colors.white.withValues(
+                                              alpha: 0.15,
+                                            ),
                                     ),
                                   ),
-                                )
-                                .animate()
-                                .fadeIn(duration: 400.ms)
-                                .scale(
-                                  begin: const Offset(0.8, 0.8),
-                                  end: const Offset(1, 1),
-                                  curve: Curves.easeOutBack,
+                                  child: Icon(
+                                    music == null
+                                        ? Icons.music_off_rounded
+                                        : isSoundOn
+                                        ? Icons.volume_up_rounded
+                                        : Icons.volume_off_rounded,
+                                    color: music == null
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : isSoundOn
+                                        ? AppTheme.calmTeal
+                                        : Colors.white38,
+                                    size: 24,
+                                  ),
                                 ),
-                      ),
+                              )
+                              .animate()
+                              .fadeIn(duration: 400.ms)
+                              .scale(
+                                begin: const Offset(0.8, 0.8),
+                                end: const Offset(1, 1),
+                                curve: Curves.easeOutBack,
+                              ),
                     ),
+                  ),
 
                   // Actions Row
                   Padding(

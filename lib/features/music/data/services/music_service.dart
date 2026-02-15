@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
@@ -75,6 +77,9 @@ class MusicService {
       if (validResults.isEmpty) {
         throw Exception('No preview available for "$keyword"');
       }
+
+      // Shuffle results to avoid always picking the same track
+      validResults.shuffle(Random());
 
       // Find first track not in exclusion set
       final selectedTrack = validResults.firstWhere(
