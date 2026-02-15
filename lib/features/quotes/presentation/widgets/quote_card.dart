@@ -35,100 +35,138 @@ class QuoteCard extends StatelessWidget {
       width: double.infinity,
       height: double.infinity,
       decoration: BoxDecoration(gradient: AppTheme.getGradientForId(quote.id)),
-      child: Stack(
-        children: [
-          // Background decoration (optional subtle patterns or noise could go here)
-          Positioned(
-            top: 100,
-            left: 20,
-            child: Icon(
-              Icons.format_quote_rounded,
-              size: 100,
-              color: Colors.white.withValues(alpha: 0.05),
-            ),
-          ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Fixed Top: Quote decoration icon
+            // Container(
+            //   height: 120,
+            //   alignment: Alignment.topLeft,
+            //   padding: const EdgeInsets.only(left: 20, top: 20),
+            //   child: Icon(
+            //     Icons.format_quote_rounded,
+            //     size: 100,
+            //     color: Colors.white.withValues(alpha: 0.05),
+            //   ),
+            // ),
 
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Spacer(),
-                  // Quote Text — word-by-word staggered animation
-                  BlocBuilder<ThemeCubit, ThemeState>(
-                    builder: (context, themeState) {
-                      return _buildAnimatedQuote(
-                        quote.text,
-                        themeState.quoteFont,
-                        themeState.quoteFontSize,
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Author
-                  GestureDetector(
-                        onTap: () {
-                          if (quote.authorSlug != null) {
-                            AuthorDetailModal.show(
-                              context,
-                              authorSlug: quote.authorSlug!,
-                              authorName: quote.author,
-                            );
-                          }
-                        },
-                        child: Text(
-                          "- ${quote.author}",
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            color: Colors.white70,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 1.0,
+            // Flexible Center: Quote content with responsive sizing
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: MediaQuery.of(context).size.width - 64,
+                      maxWidth: MediaQuery.of(context).size.width - 64,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: AlignmentGeometry.centerLeft,
+                          child: Icon(
+                            Icons.format_quote_rounded,
+                            size: 100,
+                            color: Colors.white.withValues(alpha: 0.05),
                           ),
                         ),
-                      )
-                      .animate()
-                      .fadeIn(delay: 400.ms, duration: 600.ms)
-                      .slideY(begin: 0.2, end: 0),
-
-                  const SizedBox(height: 16),
-
-                  // Tags (multi-tag from API, up to 3)
-                  if (quote.tags.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      alignment: WrapAlignment.center,
-                      children: quote.tags.take(3).map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                        // Quote Text — word-by-word staggered animation (centered)
+                        Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          child: BlocBuilder<ThemeCubit, ThemeState>(
+                            builder: (context, themeState) {
+                              return _buildAnimatedQuote(
+                                quote.text,
+                                themeState.quoteFont,
+                                themeState.quoteFontSize,
+                              );
+                            },
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.1),
-                            ),
-                          ),
-                          child: Text(
-                            tag,
-                            style: GoogleFonts.outfit(
-                              fontSize: 11,
-                              color: Colors.white60,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ).animate().fadeIn(delay: 600.ms),
+                        ),
 
-                  const Spacer(),
+                        const SizedBox(height: 32),
 
-                  // Speaker icon (always visible, disabled state when no music)
+                        // Author
+                        Center(
+                          child:
+                              GestureDetector(
+                                    onTap: () {
+                                      if (quote.authorSlug != null) {
+                                        AuthorDetailModal.show(
+                                          context,
+                                          authorSlug: quote.authorSlug!,
+                                          authorName: quote.author,
+                                        );
+                                      }
+                                    },
+                                    child: Text(
+                                      "- ${quote.author}",
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 18,
+                                        color: Colors.white70,
+                                        fontStyle: FontStyle.italic,
+                                        letterSpacing: 1.0,
+                                      ),
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: 400.ms, duration: 600.ms)
+                                  .slideY(begin: 0.2, end: 0),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Tags (multi-tag from API, up to 3)
+                        if (quote.tags.isNotEmpty)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            alignment: WrapAlignment.center,
+                            children: quote.tags.take(3).map((tag) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    color: Colors.white60,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ).animate().fadeIn(delay: 600.ms),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Fixed Bottom: Audio icon and action buttons
+            Container(
+              height: 200,
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Column(
+                children: [
+                  // Audio icon (fixed position)
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
@@ -186,76 +224,79 @@ class QuoteCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Actions Row
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 48.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildActionButton(
-                          context,
-                          icon: Icons.share_rounded,
-                          label: 'Share',
-                          onTap: () {
-                            // Using a lightweight share approach or the Bloc event
-                            context.read<FeedBloc>().add(ShareQuote(quote));
-                            Share.share('"${quote.text}" - ${quote.author}');
-                          },
-                          delay: 800.ms,
-                        ),
-                        _buildActionButton(
-                          context,
-                          icon: isLiked
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          label: 'Like',
-                          onTap: () {
-                            context.read<FeedBloc>().add(ToggleLike(quote.id));
-                          },
-                          delay: 900.ms,
-                          isPrimary: isLiked,
-                          activeColor: Colors.redAccent,
-                          isActive: isLiked,
-                        ),
-                        _buildActionButton(
-                          context,
-                          icon: isBookmarked
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          label: 'Save',
-                          onTap: () {
-                            context.read<FeedBloc>().add(
-                              ToggleBookmark(quote.id),
-                            );
-                          },
-                          delay: 1000.ms,
-                          isPrimary: isBookmarked,
-                          activeColor: Colors.amberAccent,
-                          isActive: isBookmarked,
-                        ),
-                        _buildActionButton(
-                          context,
-                          icon: Icons.person_outline_rounded,
-                          label: 'Author',
-                          onTap: () {
-                            if (quote.authorSlug != null) {
-                              AuthorDetailModal.show(
-                                context,
-                                authorSlug: quote.authorSlug!,
-                                authorName: quote.author,
+                  // Action buttons (fixed position)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 32.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildActionButton(
+                            context,
+                            icon: Icons.share_rounded,
+                            label: 'Share',
+                            onTap: () {
+                              context.read<FeedBloc>().add(ShareQuote(quote));
+                              Share.share('"${quote.text}" - ${quote.author}');
+                            },
+                            delay: 800.ms,
+                          ),
+                          _buildActionButton(
+                            context,
+                            icon: isLiked
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            label: 'Like',
+                            onTap: () {
+                              context.read<FeedBloc>().add(
+                                ToggleLike(quote.id),
                               );
-                            }
-                          },
-                          delay: 1100.ms,
-                        ),
-                      ],
+                            },
+                            delay: 900.ms,
+                            isPrimary: isLiked,
+                            activeColor: Colors.redAccent,
+                            isActive: isLiked,
+                          ),
+                          _buildActionButton(
+                            context,
+                            icon: isBookmarked
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_border_rounded,
+                            label: 'Save',
+                            onTap: () {
+                              context.read<FeedBloc>().add(
+                                ToggleBookmark(quote.id),
+                              );
+                            },
+                            delay: 1000.ms,
+                            isPrimary: isBookmarked,
+                            activeColor: Colors.amberAccent,
+                            isActive: isBookmarked,
+                          ),
+                          _buildActionButton(
+                            context,
+                            icon: Icons.person_outline_rounded,
+                            label: 'Author',
+                            onTap: () {
+                              if (quote.authorSlug != null) {
+                                AuthorDetailModal.show(
+                                  context,
+                                  authorSlug: quote.authorSlug!,
+                                  authorName: quote.author,
+                                );
+                              }
+                            },
+                            delay: 1100.ms,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -274,30 +315,41 @@ class QuoteCard extends StatelessWidget {
         ? maxDelay ~/ words.length
         : staggerMs;
 
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 4,
-      runSpacing: 2,
-      children: List.generate(words.length, (i) {
-        final delay = Duration(milliseconds: i * effectiveStagger);
-        return Text(
-              words[i],
-              style: AppTheme.quoteTextStyle(
-                fontFamily: fontFamily,
-                fontSize: fontSize,
-                color: Colors.white,
-              ),
-            )
-            .animate()
-            .fadeIn(delay: delay, duration: 400.ms)
-            .slideX(
-              delay: delay,
-              begin: 0.15,
-              end: 0,
-              duration: 350.ms,
-              curve: Curves.easeOut,
-            );
-      }),
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            runSpacing: 2,
+            children: List.generate(words.length, (i) {
+              final delay = Duration(milliseconds: i * effectiveStagger);
+              return Text(
+                    words[i],
+                    textAlign: TextAlign.center,
+                    style: AppTheme.quoteTextStyle(
+                      fontFamily: fontFamily,
+                      fontSize: fontSize,
+                      color: Colors.white,
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(delay: delay, duration: 400.ms)
+                  .slideX(
+                    delay: delay,
+                    begin: 0.15,
+                    end: 0,
+                    duration: 350.ms,
+                    curve: Curves.easeOut,
+                  );
+            }),
+          ),
+        ],
+      ),
     );
   }
 
