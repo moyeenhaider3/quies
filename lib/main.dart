@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'core/ads/consent_manager.dart';
 import 'core/di/injection.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
@@ -20,6 +22,12 @@ void main() async {
 
   // Initialize Dependency Injection
   await configureDependencies();
+
+  // Gather consent (ATT on iOS + GDPR/UMP) BEFORE initializing ads
+  await getIt<ConsentManager>().gatherConsent();
+
+  // Initialize Google Mobile Ads SDK AFTER consent
+  await MobileAds.instance.initialize();
 
   // Initialize Notifications
   await getIt<NotificationService>().init();
