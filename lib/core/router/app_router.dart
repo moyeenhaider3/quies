@@ -1,7 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
-import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 
 import '../../data/services/user_preferences_service.dart';
@@ -15,6 +15,7 @@ import '../../features/quotes/presentation/pages/quote_feed_screen.dart';
 import '../../features/quotes/presentation/pages/settings_screen.dart';
 import '../di/injection.dart';
 import '../network/api_logger.dart';
+import '../network/quotable_dns_override.dart' show QuotableDnsInterceptor;
 
 @module
 abstract class RegisterModule {
@@ -91,5 +92,16 @@ abstract class RegisterModule {
   Future<Box<dynamic>> get userBox => Hive.openBox<dynamic>('userBox');
 
   @lazySingleton
-  http.Client get httpClient => LoggingHttpClient(http.Client());
+  Dio get dio {
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        validateStatus: (status) => true,
+      ),
+    );
+    dio.interceptors.add(QuotableDnsInterceptor());
+    dio.interceptors.add(ApiLoggerInterceptor());
+    return dio;
+  }
 }

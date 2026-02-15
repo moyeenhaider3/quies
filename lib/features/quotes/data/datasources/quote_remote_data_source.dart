@@ -1,8 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 
 import '../models/api_info_model.dart';
@@ -64,11 +61,10 @@ class PaginatedAuthors extends Equatable {
 @lazySingleton
 class QuoteRemoteDataSource {
   static const _baseUrl = 'https://api.quotable.io';
-  static const _timeout = Duration(seconds: 10);
 
-  final http.Client _client;
+  final Dio _dio;
 
-  QuoteRemoteDataSource(this._client);
+  QuoteRemoteDataSource(this._dio);
 
   // ---------------------------------------------------------------------------
   // Info
@@ -78,23 +74,19 @@ class QuoteRemoteDataSource {
   ///
   /// Uses `GET /info/count`.
   Future<ApiInfoModel> fetchApiInfo() async {
-    final url = Uri.parse('$_baseUrl/info/count');
+    final url = '$_baseUrl/info/count';
 
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get(url);
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch API info: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
       return ApiInfoModel.fromJson(data);
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -116,19 +108,18 @@ class QuoteRemoteDataSource {
     int? minLength,
     String? query,
   }) async {
-    final params = <String, String>{'limit': limit.toString()};
+    final params = <String, dynamic>{'limit': limit};
     if (tags != null && tags.isNotEmpty) params['tags'] = tags;
     if (author != null && author.isNotEmpty) params['author'] = author;
-    if (maxLength != null) params['maxLength'] = maxLength.toString();
-    if (minLength != null) params['minLength'] = minLength.toString();
+    if (maxLength != null) params['maxLength'] = maxLength;
+    if (minLength != null) params['minLength'] = minLength;
     if (query != null && query.isNotEmpty) params['query'] = query;
 
-    final url = Uri.parse(
-      '$_baseUrl/quotes/random',
-    ).replace(queryParameters: params);
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get(
+        '$_baseUrl/quotes/random',
+        queryParameters: params,
+      );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -136,7 +127,7 @@ class QuoteRemoteDataSource {
         );
       }
 
-      final data = json.decode(response.body);
+      final data = response.data;
 
       // API returns an array for batch random quotes
       if (data is List) {
@@ -152,12 +143,8 @@ class QuoteRemoteDataSource {
       }
 
       throw Exception('Unexpected response format');
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -165,23 +152,17 @@ class QuoteRemoteDataSource {
   ///
   /// Uses `GET /quotes/:id`.
   Future<RemoteQuote> fetchQuoteById(String id) async {
-    final url = Uri.parse('$_baseUrl/quotes/$id');
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get('$_baseUrl/quotes/$id');
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch quote: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
       return RemoteQuote.fromJson(data);
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -198,27 +179,25 @@ class QuoteRemoteDataSource {
     int? maxLength,
     int? minLength,
   }) async {
-    final params = <String, String>{
-      'page': page.toString(),
-      'limit': limit.toString(),
-    };
+    final params = <String, dynamic>{'page': page, 'limit': limit};
     if (tags != null && tags.isNotEmpty) params['tags'] = tags;
     if (author != null && author.isNotEmpty) params['author'] = author;
     if (sortBy != null && sortBy.isNotEmpty) params['sortBy'] = sortBy;
     if (order != null && order.isNotEmpty) params['order'] = order;
-    if (maxLength != null) params['maxLength'] = maxLength.toString();
-    if (minLength != null) params['minLength'] = minLength.toString();
-
-    final url = Uri.parse('$_baseUrl/quotes').replace(queryParameters: params);
+    if (maxLength != null) params['maxLength'] = maxLength;
+    if (minLength != null) params['minLength'] = minLength;
 
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get(
+        '$_baseUrl/quotes',
+        queryParameters: params,
+      );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch quotes: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
 
       final results = (data['results'] as List<dynamic>)
           .cast<Map<String, dynamic>>()
@@ -231,12 +210,8 @@ class QuoteRemoteDataSource {
         totalCount: data['totalCount'] as int? ?? results.length,
         results: results,
       );
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -249,24 +224,23 @@ class QuoteRemoteDataSource {
     int limit = 20,
     int page = 1,
   }) async {
-    final params = <String, String>{
+    final params = <String, dynamic>{
       'query': query,
-      'limit': limit.toString(),
-      'page': page.toString(),
+      'limit': limit,
+      'page': page,
     };
 
-    final url = Uri.parse(
-      '$_baseUrl/search/quotes/',
-    ).replace(queryParameters: params);
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get(
+        '$_baseUrl/search/quotes/',
+        queryParameters: params,
+      );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to search quotes: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
 
       final results = (data['results'] as List<dynamic>)
           .cast<Map<String, dynamic>>()
@@ -279,12 +253,8 @@ class QuoteRemoteDataSource {
         totalCount: data['totalCount'] as int? ?? results.length,
         results: results,
       );
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -300,26 +270,23 @@ class QuoteRemoteDataSource {
     String sortBy = 'quoteCount',
     String sortOrder = 'desc',
   }) async {
-    final url = Uri.parse('$_baseUrl/tags?sortBy=$sortBy&sortOrder=$sortOrder');
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get(
+        '$_baseUrl/tags',
+        queryParameters: {'sortBy': sortBy, 'sortOrder': sortOrder},
+      );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch tags: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as List<dynamic>;
+      final data = response.data as List<dynamic>;
       return data
           .cast<Map<String, dynamic>>()
           .map((e) => TagModel.fromJson(e))
           .toList();
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -337,40 +304,35 @@ class QuoteRemoteDataSource {
     int page = 1,
     int? matchThreshold,
   }) async {
-    final params = <String, String>{
+    final params = <String, dynamic>{
       'query': query,
-      'autocomplete': autocomplete.toString(),
-      'limit': limit.toString(),
-      'page': page.toString(),
+      'autocomplete': autocomplete,
+      'limit': limit,
+      'page': page,
     };
     if (matchThreshold != null) {
-      params['matchThreshold'] = matchThreshold.toString();
+      params['matchThreshold'] = matchThreshold;
     }
 
-    final url = Uri.parse(
-      '$_baseUrl/search/authors',
-    ).replace(queryParameters: params);
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get(
+        '$_baseUrl/search/authors',
+        queryParameters: params,
+      );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to search authors: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
       final results = (data['results'] as List<dynamic>)
           .cast<Map<String, dynamic>>()
           .map((e) => AuthorModel.fromJson(e))
           .toList();
 
       return results;
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -384,24 +346,22 @@ class QuoteRemoteDataSource {
     int limit = 20,
     int page = 1,
   }) async {
-    final params = <String, String>{
-      'limit': limit.toString(),
-      'page': page.toString(),
-    };
+    final params = <String, dynamic>{'limit': limit, 'page': page};
     if (sortBy != null && sortBy.isNotEmpty) params['sortBy'] = sortBy;
     if (order != null && order.isNotEmpty) params['order'] = order;
     if (slug != null && slug.isNotEmpty) params['slug'] = slug;
 
-    final url = Uri.parse('$_baseUrl/authors').replace(queryParameters: params);
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get(
+        '$_baseUrl/authors',
+        queryParameters: params,
+      );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch authors: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
 
       final results = (data['results'] as List<dynamic>)
           .cast<Map<String, dynamic>>()
@@ -414,12 +374,8 @@ class QuoteRemoteDataSource {
         totalCount: data['totalCount'] as int? ?? results.length,
         results: results,
       );
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -427,23 +383,17 @@ class QuoteRemoteDataSource {
   ///
   /// Uses `GET /authors/:id`.
   Future<AuthorDetailModel> fetchAuthorById(String id) async {
-    final url = Uri.parse('$_baseUrl/authors/$id');
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get('$_baseUrl/authors/$id');
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch author: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
       return AuthorDetailModel.fromJson(data);
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -451,23 +401,35 @@ class QuoteRemoteDataSource {
   ///
   /// Uses `GET /authors/slug/:slug`.
   Future<AuthorDetailModel> fetchAuthorBySlug(String slug) async {
-    final url = Uri.parse('$_baseUrl/authors/slug/$slug');
-
     try {
-      final response = await _client.get(url).timeout(_timeout);
+      final response = await _dio.get('$_baseUrl/authors/slug/$slug');
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch author: ${response.statusCode}');
       }
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = response.data as Map<String, dynamic>;
       return AuthorDetailModel.fromJson(data);
-    } on SocketException {
-      throw Exception('No internet connection');
-    } on HttpException {
-      throw Exception('HTTP error');
-    } on FormatException {
-      throw Exception('Invalid response format');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  /// Maps [DioException] types to user-friendly error messages.
+  Exception _handleDioError(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionError:
+        return Exception('No internet connection');
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.sendTimeout:
+        return Exception('Connection timeout');
+      default:
+        return Exception('Network error: ${e.message}');
     }
   }
 }

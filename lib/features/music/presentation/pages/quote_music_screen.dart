@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 import '../bloc/quote_music_bloc.dart';
 import '../bloc/quote_music_event.dart';
 import '../bloc/quote_music_state.dart';
 import '../widgets/audio_player_widget.dart';
-import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 
 class QuoteMusicScreen extends StatelessWidget {
   const QuoteMusicScreen({super.key});

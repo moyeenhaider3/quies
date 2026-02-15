@@ -115,3 +115,48 @@ String getMusicKeywordForTags(List<String> tags) {
   }
   return defaultMusicKeyword;
 }
+
+// ---------------------------------------------------------------------------
+// Mood-based music keywords (Phase 8)
+// ---------------------------------------------------------------------------
+
+/// Maps mood names to iTunes search keywords for music tone.
+const Map<String, String> moodMusicKeywordMap = {
+  'Calm': 'calm ambient',
+  'Energized': 'upbeat pop hits',
+  'Reflective': 'acoustic indie',
+  'Anxious': 'soothing instrumental',
+  'Grateful': 'feel good songs',
+  'Hopeful': 'uplifting songs',
+  'Stressed': 'relaxing piano',
+  'Tired': 'gentle ambient',
+  'Sad': 'soft piano ballad',
+  'Okay': 'chill lofi',
+};
+
+/// Moods that should get instrumental music (no vocals).
+const Set<String> instrumentalMoods = {'Calm', 'Anxious', 'Stressed', 'Tired'};
+
+/// Moods that should get vocal songs.
+const Set<String> vocalMoods = {
+  'Energized',
+  'Reflective',
+  'Grateful',
+  'Hopeful',
+};
+
+/// Build combined iTunes search query from mood and tag.
+///
+/// Example: mood='Calm', tags=['nature'] → 'calm ambient nature sounds ambient'
+String buildMusicSearchQuery(String? mood, List<String> tags) {
+  final moodKeyword = mood != null
+      ? (moodMusicKeywordMap[mood] ?? 'ambient instrumental')
+      : 'ambient instrumental';
+
+  final tagKeyword = getMusicKeywordForTags(tags);
+
+  // If mood and tag produce the same keyword, just use mood
+  if (moodKeyword == tagKeyword) return moodKeyword;
+
+  return '$moodKeyword $tagKeyword';
+}

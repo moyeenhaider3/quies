@@ -1,62 +1,64 @@
+import 'dart:convert';
 import 'dart:developer' as developer;
 
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
-/// HTTP client wrapper that logs all API requests, responses, and errors.
+/// Dio interceptor that logs all API requests, responses, and errors.
 ///
-/// Wraps the standard [http.Client] and logs structured information
-/// for every network call including method, URL, status code, timing,
-/// request/response bodies, and any errors that occur.
-class LoggingHttpClient extends http.BaseClient {
-  final http.Client _inner;
-
-  LoggingHttpClient(this._inner);
+/// Logs structured information for every network call including method,
+/// URL, status code, timing, request/response bodies, and any errors.
+class ApiLoggerInterceptor extends Interceptor {
+  int _counter = 0;
 
   @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    final stopwatch = Stopwatch()..start();
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final requestId = _generateRequestId();
+    options.extra['_requestId'] = requestId;
+    options.extra['_startTime'] = DateTime.now().millisecondsSinceEpoch;
 
-    _logRequest(requestId, request);
-
-    try {
-      final response = await _inner.send(request);
-      stopwatch.stop();
-
-      // Read the response body so we can log it, then reconstruct
-      final bytes = await response.stream.toBytes();
-      final body = String.fromCharCodes(bytes);
-
-      _logResponse(requestId, request, response, body, stopwatch.elapsed);
-
-      // Return a new StreamedResponse with the already-read bytes
-      return http.StreamedResponse(
-        Stream.value(bytes),
-        response.statusCode,
-        contentLength: response.contentLength,
-        request: response.request,
-        headers: response.headers,
-        isRedirect: response.isRedirect,
-        persistentConnection: response.persistentConnection,
-        reasonPhrase: response.reasonPhrase,
-      );
-    } catch (error, stackTrace) {
-      stopwatch.stop();
-      _logError(requestId, request, error, stackTrace, stopwatch.elapsed);
-      rethrow;
-    }
+    _logRequest(requestId, options);
+    handler.next(options);
   }
 
-  void _logRequest(String id, http.BaseRequest request) {
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    final requestId =
+        response.requestOptions.extra['_requestId'] as String? ?? '???';
+    final startTime = response.requestOptions.extra['_startTime'] as int? ?? 0;
+    final elapsed = Duration(
+      milliseconds: DateTime.now().millisecondsSinceEpoch - startTime,
+    );
+
+    _logResponse(requestId, response, elapsed);
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    final requestId =
+        err.requestOptions.extra['_requestId'] as String? ?? '???';
+    final startTime = err.requestOptions.extra['_startTime'] as int? ?? 0;
+    final elapsed = Duration(
+      milliseconds: DateTime.now().millisecondsSinceEpoch - startTime,
+    );
+
+    _logError(requestId, err, elapsed);
+    handler.next(err);
+  }
+
+  void _logRequest(String id, RequestOptions options) {
     final buffer = StringBuffer()
       ..writeln('╔══════════════════════════════════════════')
       ..writeln('║ API REQUEST [$id]')
       ..writeln('╟──────────────────────────────────────────')
-      ..writeln('║ ${request.method} ${request.url}')
-      ..writeln('║ Headers: ${_sanitizeHeaders(request.headers)}');
+      ..writeln('║ ${options.method} ${options.uri}')
+      ..writeln('║ Headers: ${_sanitizeHeaders(options.headers)}');
 
-    if (request is http.Request && request.body.isNotEmpty) {
-      buffer.writeln('║ Body: ${_truncate(request.body, 500)}');
+    if (options.data != null) {
+      final body = options.data is String
+          ? options.data as String
+          : json.encode(options.data);
+      buffer.writeln('║ Body: ${_truncate(body, 500)}');
     }
 
     buffer.writeln('╚══════════════════════════════════════════');
@@ -68,22 +70,21 @@ class LoggingHttpClient extends http.BaseClient {
     );
   }
 
-  void _logResponse(
-    String id,
-    http.BaseRequest request,
-    http.StreamedResponse response,
-    String body,
-    Duration elapsed,
-  ) {
-    final isError = response.statusCode >= 400;
+  void _logResponse(String id, Response response, Duration elapsed) {
+    final isError = (response.statusCode ?? 0) >= 400;
+    final body = response.data is String
+        ? response.data as String
+        : json.encode(response.data);
+
     final buffer = StringBuffer()
       ..writeln('╔══════════════════════════════════════════')
       ..writeln('║ API RESPONSE [$id] ${isError ? "⚠️ ERROR" : "✓ OK"}')
       ..writeln('╟──────────────────────────────────────────')
-      ..writeln('║ ${request.method} ${request.url}')
-      ..writeln('║ Status: ${response.statusCode} ${response.reasonPhrase}')
+      ..writeln(
+        '║ ${response.requestOptions.method} ${response.requestOptions.uri}',
+      )
+      ..writeln('║ Status: ${response.statusCode} ${response.statusMessage}')
       ..writeln('║ Duration: ${elapsed.inMilliseconds}ms')
-      ..writeln('║ Content-Length: ${response.contentLength ?? body.length}')
       ..writeln('║ Body: ${_truncate(body, 800)}')
       ..writeln('╚══════════════════════════════════════════');
 
@@ -94,34 +95,27 @@ class LoggingHttpClient extends http.BaseClient {
     );
   }
 
-  void _logError(
-    String id,
-    http.BaseRequest request,
-    Object error,
-    StackTrace stackTrace,
-    Duration elapsed,
-  ) {
+  void _logError(String id, DioException err, Duration elapsed) {
     final buffer = StringBuffer()
       ..writeln('╔══════════════════════════════════════════')
       ..writeln('║ API ERROR [$id]')
       ..writeln('╟──────────────────────────────────────────')
-      ..writeln('║ ${request.method} ${request.url}')
+      ..writeln('║ ${err.requestOptions.method} ${err.requestOptions.uri}')
       ..writeln('║ Duration: ${elapsed.inMilliseconds}ms')
-      ..writeln('║ Error: $error')
-      ..writeln('║ Type: ${error.runtimeType}')
+      ..writeln('║ Error: ${err.message}')
+      ..writeln('║ Type: ${err.type}')
       ..writeln('╚══════════════════════════════════════════');
 
     developer.log(
       buffer.toString(),
       name: 'API',
       level: 1200, // SEVERE
-      error: error,
-      stackTrace: stackTrace,
+      error: err,
+      stackTrace: err.stackTrace,
     );
   }
 
-  Map<String, String> _sanitizeHeaders(Map<String, String> headers) {
-    // Redact sensitive headers
+  Map<String, String> _sanitizeHeaders(Map<String, dynamic> headers) {
     const sensitiveKeys = {
       'authorization',
       'cookie',
@@ -132,7 +126,7 @@ class LoggingHttpClient extends http.BaseClient {
       if (sensitiveKeys.contains(key.toLowerCase())) {
         return MapEntry(key, '***REDACTED***');
       }
-      return MapEntry(key, value);
+      return MapEntry(key, value.toString());
     });
   }
 
@@ -140,8 +134,6 @@ class LoggingHttpClient extends http.BaseClient {
     if (text.length <= maxLength) return text;
     return '${text.substring(0, maxLength)}… [truncated ${text.length - maxLength} chars]';
   }
-
-  int _counter = 0;
 
   String _generateRequestId() {
     _counter++;
@@ -151,11 +143,5 @@ class LoggingHttpClient extends http.BaseClient {
         '${now.second.toString().padLeft(2, '0')}'
         '.${now.millisecond.toString().padLeft(3, '0')}'
         '#$_counter';
-  }
-
-  @override
-  void close() {
-    _inner.close();
-    super.close();
   }
 }

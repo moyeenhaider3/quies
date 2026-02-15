@@ -70,16 +70,16 @@ class QuoteCard extends StatelessWidget {
 
                   // Author
                   GestureDetector(
-                    onTap: () {
-                      if (quote.authorSlug != null) {
-                        AuthorDetailModal.show(
-                          context,
-                          authorSlug: quote.authorSlug!,
-                          authorName: quote.author,
-                        );
-                      }
-                    },
-                    child: Text(
+                        onTap: () {
+                          if (quote.authorSlug != null) {
+                            AuthorDetailModal.show(
+                              context,
+                              authorSlug: quote.authorSlug!,
+                              authorName: quote.author,
+                            );
+                          }
+                        },
+                        child: Text(
                           "- ${quote.author}",
                           style: GoogleFonts.outfit(
                             fontSize: 18,
@@ -88,7 +88,7 @@ class QuoteCard extends StatelessWidget {
                             letterSpacing: 1.0,
                           ),
                         ),
-                  )
+                      )
                       .animate()
                       .fadeIn(delay: 400.ms, duration: 600.ms)
                       .slideY(begin: 0.2, end: 0),

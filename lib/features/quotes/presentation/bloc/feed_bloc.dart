@@ -89,18 +89,36 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   // ---------------------------------------------------------------------------
 
   /// Fetch music for each quote and emit [MusicLoaded] events.
-  void _fetchMusicForQuotes(List<Quote> quotes) {
+  ///
+  /// Uses combined mood+tag search query for richer music selection.
+  /// Excludes already-used track IDs for per-quote uniqueness.
+  void _fetchMusicForQuotes(
+    List<Quote> quotes, {
+    Set<int> usedTrackIds = const {},
+    String? currentMood,
+  }) {
     for (final quote in quotes) {
-      final keyword = getMusicKeywordForTags(quote.tags);
+      // Combined mood+tag search query
+      final keyword = buildMusicSearchQuery(currentMood, quote.tags);
       _musicService
-          .fetchMusic(keyword)
+          .fetchMusic(keyword, excludeTrackIds: usedTrackIds)
           .then((music) {
             if (!isClosed) {
               add(MusicLoaded(quote.id, music));
             }
           })
           .catchError((_) {
-            // No music available for this quote — graceful degradation
+            // Fallback: try generic mood instrumental
+            final moodKeyword =
+                moodMusicKeywordMap[currentMood] ?? 'ambient instrumental';
+            _musicService
+                .fetchMusic(moodKeyword, excludeTrackIds: usedTrackIds)
+                .then((music) {
+                  if (!isClosed) add(MusicLoaded(quote.id, music));
+                })
+                .catchError((_) {
+                  // No music — graceful degradation
+                });
           });
     }
   }
@@ -146,7 +164,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       );
 
       // Fire off background music fetching
-      _fetchMusicForQuotes(sorted);
+      _fetchMusicForQuotes(sorted, currentMood: mood);
     });
 
     // If the result was a local fallback (getRemoteQuotes falls back to local
@@ -186,7 +204,10 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
         // Pre-enable sound for new quotes if audioEnabled
         final newSoundEnabled = _prefsService.audioEnabled
-            ? {...currentState.soundEnabledQuoteIds, ...newQuotes.map((q) => q.id)}
+            ? {
+                ...currentState.soundEnabledQuoteIds,
+                ...newQuotes.map((q) => q.id),
+              }
             : currentState.soundEnabledQuoteIds;
 
         emit(
@@ -200,7 +221,11 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           ),
         );
 
-        _fetchMusicForQuotes(newQuotes);
+        _fetchMusicForQuotes(
+          newQuotes,
+          usedTrackIds: currentState.usedTrackIds,
+          currentMood: currentState.currentMood,
+        );
       });
     } else {
       // Random append (no pagination)
@@ -213,7 +238,10 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
         // Pre-enable sound for new quotes if audioEnabled
         final newSoundEnabled = _prefsService.audioEnabled
-            ? {...currentState.soundEnabledQuoteIds, ...newQuotes.map((q) => q.id)}
+            ? {
+                ...currentState.soundEnabledQuoteIds,
+                ...newQuotes.map((q) => q.id),
+              }
             : currentState.soundEnabledQuoteIds;
 
         emit(
@@ -225,7 +253,11 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           ),
         );
 
-        _fetchMusicForQuotes(newQuotes);
+        _fetchMusicForQuotes(
+          newQuotes,
+          usedTrackIds: currentState.usedTrackIds,
+          currentMood: currentState.currentMood,
+        );
       });
     }
   }
@@ -330,7 +362,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             ),
           );
 
-          _fetchMusicForQuotes(sorted);
+          _fetchMusicForQuotes(sorted, currentMood: event.mood);
         },
       );
     } else {
@@ -384,7 +416,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           ),
         );
 
-        _fetchMusicForQuotes(quotes);
+        _fetchMusicForQuotes(quotes, currentMood: mood);
       },
     );
   }
@@ -421,7 +453,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           ),
         );
 
-        _fetchMusicForQuotes(quotes);
+        _fetchMusicForQuotes(quotes, currentMood: mood);
       },
     );
   }
@@ -456,7 +488,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         ),
       );
 
-      _fetchMusicForQuotes(quotes);
+      _fetchMusicForQuotes(quotes, currentMood: mood);
     });
   }
 
@@ -488,7 +520,17 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         currentState.pairedMusic,
       );
       updatedMusic[event.quoteId] = event.music;
-      emit(currentState.copyWith(pairedMusic: updatedMusic));
+
+      // Track used track IDs for uniqueness
+      final newUsedTrackIds = Set<int>.from(currentState.usedTrackIds);
+      newUsedTrackIds.add(event.music.trackId);
+
+      emit(
+        currentState.copyWith(
+          pairedMusic: updatedMusic,
+          usedTrackIds: newUsedTrackIds,
+        ),
+      );
     }
   }
 

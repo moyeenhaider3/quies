@@ -31,6 +31,9 @@ class FeedLoaded extends FeedState {
   final int currentPage;
   final int totalPages;
 
+  // Phase 8 additions
+  final Set<int> usedTrackIds;
+
   const FeedLoaded(
     this.quotes, {
     this.feedItems = const [],
@@ -48,6 +51,7 @@ class FeedLoaded extends FeedState {
     this.isLoadingMore = false,
     this.currentPage = 1,
     this.totalPages = 1,
+    this.usedTrackIds = const {},
   });
 
   /// Whether any filter (tags or author) is currently active.
@@ -71,6 +75,7 @@ class FeedLoaded extends FeedState {
     int? currentPage,
     int? totalPages,
     bool clearAuthorFilter = false,
+    Set<int>? usedTrackIds,
   }) {
     return FeedLoaded(
       quotes ?? this.quotes,
@@ -93,6 +98,7 @@ class FeedLoaded extends FeedState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
+      usedTrackIds: usedTrackIds ?? this.usedTrackIds,
     );
   }
 
@@ -114,6 +120,7 @@ class FeedLoaded extends FeedState {
     isLoadingMore,
     currentPage,
     totalPages,
+    usedTrackIds,
   ];
 }
 

@@ -97,9 +97,7 @@ class _AuthorDetailModalState extends State<AuthorDetailModal> {
                   height: modalHeight,
                   width: modalWidth,
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF1A1A2E)
-                        : Colors.white,
+                    color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isDark
@@ -211,10 +209,7 @@ class _AuthorDetailModalState extends State<AuthorDetailModal> {
                 if (author.description.isNotEmpty)
                   Text(
                     author.description,
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      color: mutedColor,
-                    ),
+                    style: GoogleFonts.outfit(fontSize: 14, color: mutedColor),
                   ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
                 const SizedBox(height: 16),
                 if (author.bio.isNotEmpty)
@@ -252,22 +247,22 @@ class _AuthorDetailModalState extends State<AuthorDetailModal> {
         // Quote carousel
         if (quotes.isNotEmpty)
           SizedBox(
-            height: carouselHeight,
-            child: PageView.builder(
-              controller: PageController(viewportFraction: 0.85),
-              itemCount: quotes.length,
-              itemBuilder: (context, index) {
-                final rq = quotes[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: GestureDetector(
-                    onTap: () => _openQuoteDetail(context, rq),
-                    child: _buildCarouselCard(rq),
-                  ),
-                );
-              },
-            ),
-          )
+                height: carouselHeight,
+                child: PageView.builder(
+                  controller: PageController(viewportFraction: 0.85),
+                  itemCount: quotes.length,
+                  itemBuilder: (context, index) {
+                    final rq = quotes[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: GestureDetector(
+                        onTap: () => _openQuoteDetail(context, rq),
+                        child: _buildCarouselCard(rq),
+                      ),
+                    );
+                  },
+                ),
+              )
               .animate()
               .fadeIn(delay: 400.ms, duration: 500.ms)
               .slideY(begin: 0.1, end: 0),
@@ -337,11 +332,9 @@ class _AuthorDetailModalState extends State<AuthorDetailModal> {
 
   void _openQuoteDetail(BuildContext context, RemoteQuote rq) {
     final quote = rq.toQuote();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => _QuoteDetailScreen(quote: quote),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => _QuoteDetailScreen(quote: quote)));
   }
 }
 
@@ -406,9 +399,9 @@ class _QuoteDetailScreen extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 6,
                           alignment: WrapAlignment.center,
-                          children: (quote.tags as List<String>)
-                              .take(3)
-                              .map((tag) {
+                          children: (quote.tags as List<String>).take(3).map((
+                            tag,
+                          ) {
                             return Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,

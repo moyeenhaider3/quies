@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_theme.dart';
 import 'shimmer/shimmer_bar.dart';
 
@@ -39,7 +39,9 @@ class PrimaryButton extends StatelessWidget {
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
         ),
         child: isLoading
             ? const SizedBox(

@@ -10,19 +10,18 @@ class ShimmerCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor =
-        isDark ? const Color(0xFF2A2A3E) : const Color(0xFFE0E0E0);
-    final shimmerColor =
-        isDark ? const Color(0xFF3A3A4E) : const Color(0xFFF0F0F0);
+    final baseColor = isDark
+        ? const Color(0xFF2A2A3E)
+        : const Color(0xFFE0E0E0);
+    final shimmerColor = isDark
+        ? const Color(0xFF3A3A4E)
+        : const Color(0xFFF0F0F0);
 
     return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: baseColor,
-        shape: BoxShape.circle,
-      ),
-    )
+          width: size,
+          height: size,
+          decoration: BoxDecoration(color: baseColor, shape: BoxShape.circle),
+        )
         .animate(onPlay: (controller) => controller.repeat())
         .shimmer(duration: 1200.ms, color: shimmerColor);
   }

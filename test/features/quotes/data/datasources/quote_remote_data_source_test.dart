@@ -1,23 +1,17 @@
-import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'package:quies/features/quotes/data/datasources/quote_remote_data_source.dart';
 
-class MockHttpClient extends Mock implements http.Client {}
+class MockDio extends Mock implements Dio {}
 
 void main() {
-  late MockHttpClient mockClient;
+  late MockDio mockDio;
   late QuoteRemoteDataSource dataSource;
 
   setUp(() {
-    mockClient = MockHttpClient();
-    dataSource = QuoteRemoteDataSource(mockClient);
-  });
-
-  setUpAll(() {
-    registerFallbackValue(Uri.parse('https://api.quotable.io'));
+    mockDio = MockDio();
+    dataSource = QuoteRemoteDataSource(mockDio);
   });
 
   // ---------------------------------------------------------------------------
@@ -26,31 +20,41 @@ void main() {
   group('fetchApiInfo', () {
     test('returns ApiInfoModel with real API payload', () async {
       // Actual response from curl #1
-      final responseBody = json.encode({
-        'quotes': 2127,
-        'authors': 803,
-        'tags': 67,
-      });
+      final responseData = {'quotes': 2127, 'authors': 803, 'tags': 67};
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/info/count'),
+        ),
+      );
 
       final info = await dataSource.fetchApiInfo();
 
       expect(info.quotes, 2127);
       expect(info.authors, 803);
       expect(info.tags, 67);
-
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.path, '/info/count');
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Error', 500));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Error',
+          statusCode: 500,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(() => dataSource.fetchApiInfo(), throwsA(isA<Exception>()));
     });
@@ -62,7 +66,7 @@ void main() {
   group('fetchRandomQuotes', () {
     // Curl #3: GET /quotes/random?limit=3&tags=love
     test('returns list of RemoteQuote from real API payload', () async {
-      final responseBody = json.encode([
+      final responseData = [
         {
           '_id': 'WL-3GSsLFw',
           'content':
@@ -89,11 +93,20 @@ void main() {
           'length': 82,
           'tags': ['Love', 'Life'],
         },
-      ]);
+      ];
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/quotes/random'),
+        ),
+      );
 
       final quotes = await dataSource.fetchRandomQuotes(limit: 3, tags: 'love');
 
@@ -107,7 +120,7 @@ void main() {
 
     // Curl #9: GET /quotes/random?limit=1
     test('returns single quote from array when limit=1', () async {
-      final responseBody = json.encode([
+      final responseData = [
         {
           '_id': 'BRC6vxE3Im',
           'content': 'Only a life lived for others is a life worthwhile.',
@@ -116,11 +129,20 @@ void main() {
           'length': 51,
           'tags': ['Famous Quotes'],
         },
-      ]);
+      ];
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/quotes/random'),
+        ),
+      );
 
       final quotes = await dataSource.fetchRandomQuotes(limit: 1);
 
@@ -133,18 +155,27 @@ void main() {
     });
 
     test('handles single object response (fallback)', () async {
-      final responseBody = json.encode({
+      final responseData = {
         '_id': 'BRC6vxE3Im',
         'content': 'Only a life lived for others is a life worthwhile.',
         'author': 'Albert Einstein',
         'authorSlug': 'albert-einstein',
         'length': 51,
         'tags': ['Famous Quotes'],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/quotes/random'),
+        ),
+      );
 
       final quotes = await dataSource.fetchRandomQuotes(limit: 1);
 
@@ -157,16 +188,34 @@ void main() {
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Server error', 500));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Server error',
+          statusCode: 500,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(() => dataSource.fetchRandomQuotes(), throwsA(isA<Exception>()));
     });
 
     test('includes all query params in URL', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('[]', 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: <dynamic>[],
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/quotes/random'),
+        ),
+      );
 
       await dataSource.fetchRandomQuotes(
         limit: 5,
@@ -177,14 +226,19 @@ void main() {
         query: 'success',
       );
 
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.queryParameters['limit'], '5');
-      expect(uri.queryParameters['tags'], 'love|life');
-      expect(uri.queryParameters['author'], 'einstein');
-      expect(uri.queryParameters['maxLength'], '100');
-      expect(uri.queryParameters['minLength'], '10');
-      expect(uri.queryParameters['query'], 'success');
+      final captured = verify(
+        () => mockDio.get(
+          captureAny(),
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured;
+      final queryParams = captured[1] as Map<String, dynamic>;
+      expect(queryParams['limit'], 5);
+      expect(queryParams['tags'], 'love|life');
+      expect(queryParams['author'], 'einstein');
+      expect(queryParams['maxLength'], 100);
+      expect(queryParams['minLength'], 10);
+      expect(queryParams['query'], 'success');
     });
   });
 
@@ -194,7 +248,7 @@ void main() {
   group('fetchQuoteById', () {
     // Curl #11: GET /quotes/2xpHvSOQMi
     test('returns RemoteQuote from real API payload', () async {
-      final responseBody = json.encode({
+      final responseData = {
         '_id': '2xpHvSOQMi',
         'content':
             'Try not to become a man of success, but rather try to become a man of value.',
@@ -204,11 +258,20 @@ void main() {
         'tags': ['Famous Quotes'],
         'dateAdded': '2019-07-03',
         'dateModified': '2023-04-14',
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/quotes/2xpHvSOQMi'),
+        ),
+      );
 
       final quote = await dataSource.fetchQuoteById('2xpHvSOQMi');
 
@@ -221,16 +284,21 @@ void main() {
       expect(quote.authorSlug, 'albert-einstein');
       expect(quote.length, 76);
       expect(quote.dateAdded, '2019-07-03');
-
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.path, '/quotes/2xpHvSOQMi');
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Not found', 404));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Not found',
+          statusCode: 404,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(
         () => dataSource.fetchQuoteById('invalid'),
@@ -245,7 +313,7 @@ void main() {
   group('fetchQuotes', () {
     // Curl #8: GET /quotes?tags=love&limit=3&page=1
     test('returns PaginatedQuotes from real API payload', () async {
-      final responseBody = json.encode({
+      final responseData = {
         'count': 3,
         'totalCount': 17,
         'page': 1,
@@ -286,11 +354,20 @@ void main() {
             'dateModified': '2023-04-14',
           },
         ],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/quotes'),
+        ),
+      );
 
       final result = await dataSource.fetchQuotes(
         tags: 'love',
@@ -308,16 +385,25 @@ void main() {
     });
 
     test('includes maxLength, minLength, and order in query params', () async {
-      final responseBody = json.encode({
+      final responseData = {
         'page': 1,
         'totalPages': 1,
         'totalCount': 0,
         'results': <dynamic>[],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/quotes'),
+        ),
+      );
 
       await dataSource.fetchQuotes(
         tags: 'wisdom',
@@ -326,18 +412,32 @@ void main() {
         minLength: 10,
       );
 
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.queryParameters['tags'], 'wisdom');
-      expect(uri.queryParameters['order'], 'asc');
-      expect(uri.queryParameters['maxLength'], '50');
-      expect(uri.queryParameters['minLength'], '10');
+      final captured = verify(
+        () => mockDio.get(
+          captureAny(),
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured;
+      final queryParams = captured[1] as Map<String, dynamic>;
+      expect(queryParams['tags'], 'wisdom');
+      expect(queryParams['order'], 'asc');
+      expect(queryParams['maxLength'], 50);
+      expect(queryParams['minLength'], 10);
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Not found', 404));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Not found',
+          statusCode: 404,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(() => dataSource.fetchQuotes(), throwsA(isA<Exception>()));
     });
@@ -349,7 +449,7 @@ void main() {
   group('searchQuotes', () {
     // Curl #10: GET /search/quotes?query=love&limit=2
     test('returns PaginatedQuotes from real search API payload', () async {
-      final responseBody = json.encode({
+      final responseData = {
         'count': 2,
         'totalCount': 31,
         'page': 1,
@@ -378,11 +478,20 @@ void main() {
             'dateModified': '2023-04-14',
           },
         ],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search/quotes/'),
+        ),
+      );
 
       final result = await dataSource.searchQuotes(query: 'love', limit: 2);
 
@@ -394,17 +503,30 @@ void main() {
       expect(result.results[0].authorId, 'A1bFeO7m1G');
       expect(result.results[1].content, 'Where there is love there is life.');
 
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.path, '/search/quotes/');
-      expect(uri.queryParameters['query'], 'love');
-      expect(uri.queryParameters['limit'], '2');
+      final captured = verify(
+        () => mockDio.get(
+          captureAny(),
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured;
+      final queryParams = captured[1] as Map<String, dynamic>;
+      expect(queryParams['query'], 'love');
+      expect(queryParams['limit'], 2);
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Error', 500));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Error',
+          statusCode: 500,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(
         () => dataSource.searchQuotes(query: 'test'),
@@ -419,7 +541,7 @@ void main() {
   group('fetchTags', () {
     // Curl #4: GET /tags (partial – first 2 tags)
     test('returns list of TagModel from real API payload', () async {
-      final responseBody = json.encode([
+      final responseData = [
         {
           '_id': 'fvpORe-t',
           'name': 'Famous Quotes',
@@ -436,11 +558,20 @@ void main() {
           'dateAdded': '2019-10-18',
           'dateModified': '2023-04-14',
         },
-      ]);
+      ];
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/tags'),
+        ),
+      );
 
       final tags = await dataSource.fetchTags();
 
@@ -455,21 +586,44 @@ void main() {
 
     test('passes sortBy and sortOrder query params', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('[]', 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: <dynamic>[],
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/tags'),
+        ),
+      );
 
       await dataSource.fetchTags(sortBy: 'name', sortOrder: 'asc');
 
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.queryParameters['sortBy'], 'name');
-      expect(uri.queryParameters['sortOrder'], 'asc');
+      final captured = verify(
+        () => mockDio.get(
+          captureAny(),
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured;
+      final queryParams = captured[1] as Map<String, dynamic>;
+      expect(queryParams['sortBy'], 'name');
+      expect(queryParams['sortOrder'], 'asc');
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Error', 500));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Error',
+          statusCode: 500,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(() => dataSource.fetchTags(), throwsA(isA<Exception>()));
     });
@@ -481,7 +635,7 @@ void main() {
   group('searchAuthors', () {
     // Curl #2: GET /search/authors?query=Jon%20Kabat-Zinn
     test('returns authors from real API search payload', () async {
-      final responseBody = json.encode({
+      final responseData = {
         'count': 1,
         'totalCount': 1,
         'page': 1,
@@ -500,11 +654,20 @@ void main() {
             'dateModified': '2023-04-06',
           },
         ],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search/authors'),
+        ),
+      );
 
       final authors = await dataSource.searchAuthors('Jon Kabat-Zinn');
 
@@ -517,7 +680,7 @@ void main() {
 
     // Curl #5: GET /search/authors?query=dalai%20lama&autocomplete=true&limit=5&matchThreshold=2
     test('passes autocomplete and matchThreshold params', () async {
-      final responseBody = json.encode({
+      final responseData = {
         'count': 1,
         'totalCount': 1,
         'page': 1,
@@ -535,11 +698,20 @@ void main() {
             'dateModified': '2023-04-06',
           },
         ],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search/authors'),
+        ),
+      );
 
       final authors = await dataSource.searchAuthors(
         'dalai lama',
@@ -552,18 +724,32 @@ void main() {
       expect(authors[0].name, '14th Dalai Lama');
       expect(authors[0].quoteCount, 58);
 
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.queryParameters['query'], 'dalai lama');
-      expect(uri.queryParameters['autocomplete'], 'true');
-      expect(uri.queryParameters['limit'], '5');
-      expect(uri.queryParameters['matchThreshold'], '2');
+      final captured = verify(
+        () => mockDio.get(
+          captureAny(),
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured;
+      final queryParams = captured[1] as Map<String, dynamic>;
+      expect(queryParams['query'], 'dalai lama');
+      expect(queryParams['autocomplete'], true);
+      expect(queryParams['limit'], 5);
+      expect(queryParams['matchThreshold'], 2);
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Error', 500));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Error',
+          statusCode: 500,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(() => dataSource.searchAuthors('test'), throwsA(isA<Exception>()));
     });
@@ -574,7 +760,7 @@ void main() {
   // ---------------------------------------------------------------------------
   group('fetchAuthors', () {
     test('returns PaginatedAuthors on 200 response', () async {
-      final responseBody = json.encode({
+      final responseData = {
         'count': 1,
         'totalCount': 803,
         'page': 1,
@@ -592,11 +778,20 @@ void main() {
             'dateModified': '2023-04-06',
           },
         ],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/authors'),
+        ),
+      );
 
       final result = await dataSource.fetchAuthors(page: 1, limit: 1);
 
@@ -605,23 +800,28 @@ void main() {
       expect(result.totalCount, 803);
       expect(result.results.length, 1);
       expect(result.results[0].name, 'Albert Einstein');
-
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.path, '/authors');
     });
 
     test('includes sortBy, order, and slug params', () async {
-      final responseBody = json.encode({
+      final responseData = {
         'page': 1,
         'totalPages': 1,
         'totalCount': 0,
         'results': <dynamic>[],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/authors'),
+        ),
+      );
 
       await dataSource.fetchAuthors(
         sortBy: 'quoteCount',
@@ -629,17 +829,31 @@ void main() {
         slug: 'albert-einstein',
       );
 
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.queryParameters['sortBy'], 'quoteCount');
-      expect(uri.queryParameters['order'], 'desc');
-      expect(uri.queryParameters['slug'], 'albert-einstein');
+      final captured = verify(
+        () => mockDio.get(
+          captureAny(),
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured;
+      final queryParams = captured[1] as Map<String, dynamic>;
+      expect(queryParams['sortBy'], 'quoteCount');
+      expect(queryParams['order'], 'desc');
+      expect(queryParams['slug'], 'albert-einstein');
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Error', 500));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Error',
+          statusCode: 500,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(() => dataSource.fetchAuthors(), throwsA(isA<Exception>()));
     });
@@ -651,7 +865,7 @@ void main() {
   group('fetchAuthorById', () {
     // Curl #6: GET /authors/L76FRuEeGIUJ (Albert Einstein)
     test('returns AuthorDetailModel from real API payload', () async {
-      final responseBody = json.encode({
+      final responseData = {
         '_id': 'L76FRuEeGIUJ',
         'bio': 'Albert Einstein was a German-born theoretical physicist.',
         'description': 'Theoretical physicist',
@@ -672,11 +886,20 @@ void main() {
             'tags': ['Famous Quotes'],
           },
         ],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/authors/L76FRuEeGIUJ'),
+        ),
+      );
 
       final detail = await dataSource.fetchAuthorById('L76FRuEeGIUJ');
 
@@ -689,16 +912,21 @@ void main() {
       expect(detail.quotes.length, 1);
       expect(detail.quotes[0].id, '2xpHvSOQMi');
       expect(detail.quotes[0].length, 76);
-
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.path, '/authors/L76FRuEeGIUJ');
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Not found', 404));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Not found',
+          statusCode: 404,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(
         () => dataSource.fetchAuthorById('invalid'),
@@ -713,7 +941,7 @@ void main() {
   group('fetchAuthorBySlug', () {
     // Curl #7: GET /authors/slug/albert-camus
     test('returns AuthorDetailModel from real API payload', () async {
-      final responseBody = json.encode({
+      final responseData = {
         '_id': 'PVzslq_W8B-h',
         'bio': 'Albert Camus was a French philosopher, author, dramatist.',
         'description': 'French author and philosopher',
@@ -734,11 +962,20 @@ void main() {
             'tags': ['Happiness'],
           },
         ],
-      });
+      };
 
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response(responseBody, 200));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/authors/slug/albert-camus'),
+        ),
+      );
 
       final detail = await dataSource.fetchAuthorBySlug('albert-camus');
 
@@ -750,16 +987,21 @@ void main() {
         detail.quotes[0].content,
         'You will never be happy if you continue to search for what happiness consists of.',
       );
-
-      final captured = verify(() => mockClient.get(captureAny())).captured;
-      final uri = captured.first as Uri;
-      expect(uri.path, '/authors/slug/albert-camus');
     });
 
     test('throws on non-200 status code', () async {
       when(
-        () => mockClient.get(any()),
-      ).thenAnswer((_) async => http.Response('Not found', 404));
+        () => mockDio.get(
+          any(),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Not found',
+          statusCode: 404,
+          requestOptions: RequestOptions(path: ''),
+        ),
+      );
 
       expect(
         () => dataSource.fetchAuthorBySlug('invalid'),

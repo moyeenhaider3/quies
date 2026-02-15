@@ -1,16 +1,27 @@
-import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:quies/features/music/data/services/music_service.dart';
 
+class MockDio extends Mock implements Dio {}
+
 void main() {
+  late MockDio mockDio;
+  late MusicService service;
+
+  setUp(() {
+    mockDio = MockDio();
+    service = MusicService(mockDio);
+  });
+
   group('MusicService', () {
     test('fetchMusic returns MusicPreview on valid response', () async {
-      final mockClient = MockClient((request) async {
-        return http.Response(
-          json.encode({
+      when(
+        () =>
+            mockDio.get(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
             'resultCount': 1,
             'results': [
               {
@@ -22,12 +33,12 @@ void main() {
                 'primaryGenreName': 'Ambient',
               },
             ],
-          }),
-          200,
-        );
-      });
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search'),
+        ),
+      );
 
-      final service = MusicService(mockClient);
       final preview = await service.fetchMusic('calm ambient');
 
       expect(preview.trackId, 123);
@@ -36,22 +47,27 @@ void main() {
     });
 
     test('fetchMusic throws on empty results', () async {
-      final mockClient = MockClient((request) async {
-        return http.Response(
-          json.encode({'resultCount': 0, 'results': []}),
-          200,
-        );
-      });
-
-      final service = MusicService(mockClient);
+      when(
+        () =>
+            mockDio.get(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {'resultCount': 0, 'results': []},
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search'),
+        ),
+      );
 
       expect(() => service.fetchMusic('nonexistent'), throwsException);
     });
 
     test('fetchMusic skips results without previewUrl', () async {
-      final mockClient = MockClient((request) async {
-        return http.Response(
-          json.encode({
+      when(
+        () =>
+            mockDio.get(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
             'resultCount': 2,
             'results': [
               {
@@ -71,12 +87,12 @@ void main() {
                 'primaryGenreName': 'Pop',
               },
             ],
-          }),
-          200,
-        );
-      });
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search'),
+        ),
+      );
 
-      final service = MusicService(mockClient);
       final preview = await service.fetchMusic('test');
 
       expect(preview.trackId, 2);
@@ -84,9 +100,12 @@ void main() {
     });
 
     test('fetchMusic throws when all results lack previewUrl', () async {
-      final mockClient = MockClient((request) async {
-        return http.Response(
-          json.encode({
+      when(
+        () =>
+            mockDio.get(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
             'resultCount': 2,
             'results': [
               {
@@ -102,32 +121,37 @@ void main() {
                 'previewUrl': null,
               },
             ],
-          }),
-          200,
-        );
-      });
-
-      final service = MusicService(mockClient);
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search'),
+        ),
+      );
 
       expect(() => service.fetchMusic('test'), throwsException);
     });
 
     test('fetchMusic throws on non-200 status', () async {
-      final mockClient = MockClient((request) async {
-        return http.Response('Server Error', 500);
-      });
-
-      final service = MusicService(mockClient);
+      when(
+        () =>
+            mockDio.get(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer(
+        (_) async => Response(
+          data: 'Server Error',
+          statusCode: 500,
+          requestOptions: RequestOptions(path: '/search'),
+        ),
+      );
 
       expect(() => service.fetchMusic('test'), throwsException);
     });
 
     test('fetchMusicForGenre uses correct keyword', () async {
-      String? capturedQuery;
-      final mockClient = MockClient((request) async {
-        capturedQuery = request.url.queryParameters['term'];
-        return http.Response(
-          json.encode({
+      when(
+        () =>
+            mockDio.get(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer(
+        (_) async => Response(
+          data: {
             'resultCount': 1,
             'results': [
               {
@@ -139,24 +163,25 @@ void main() {
                 'primaryGenreName': '',
               },
             ],
-          }),
-          200,
-        );
-      });
+          },
+          statusCode: 200,
+          requestOptions: RequestOptions(path: '/search'),
+        ),
+      );
 
-      final service = MusicService(mockClient);
       await service.fetchMusicForGenre('inspirational');
 
-      expect(capturedQuery, 'motivational instrumental');
+      final captured = verify(
+        () => mockDio.get(
+          captureAny(),
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured;
+      final queryParams = captured[1] as Map<String, dynamic>;
+      expect(queryParams['term'], 'motivational instrumental');
     });
 
     test('fetchMusicForGenre throws on unsupported genre', () {
-      final mockClient = MockClient((request) async {
-        return http.Response('', 200);
-      });
-
-      final service = MusicService(mockClient);
-
       expect(
         () => service.fetchMusicForGenre('nonexistent_genre'),
         throwsException,

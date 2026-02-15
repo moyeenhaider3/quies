@@ -7,11 +7,11 @@
 // ignore_for_file: type=lint
 // coverage:ignore-file
 
+import 'package:dio/dio.dart' as _i519;
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:go_router/go_router.dart' as _i583;
 import 'package:hive/hive.dart' as _i979;
-import 'package:http/http.dart' as _i519;
 import 'package:injectable/injectable.dart' as _i526;
 
 import '../../data/services/content_matching_service.dart' as _i963;
@@ -42,7 +42,7 @@ extension GetItInjectableX on _i174.GetIt {
   }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
-    gh.lazySingleton<_i519.Client>(() => registerModule.httpClient);
+    gh.lazySingleton<_i519.Dio>(() => registerModule.dio);
     gh.lazySingleton<_i963.ContentMatchingService>(
       () => _i963.ContentMatchingService(),
     );
@@ -52,13 +52,13 @@ extension GetItInjectableX on _i174.GetIt {
       preResolve: true,
     );
     gh.lazySingleton<_i829.MusicService>(
-      () => _i829.MusicService(gh<_i519.Client>()),
+      () => _i829.MusicService(gh<_i519.Dio>()),
     );
     gh.lazySingleton<_i409.QuoteLocalDataSource>(
       () => _i409.QuoteLocalDataSourceImpl(),
     );
     gh.lazySingleton<_i210.QuoteRemoteDataSource>(
-      () => _i210.QuoteRemoteDataSource(gh<_i519.Client>()),
+      () => _i210.QuoteRemoteDataSource(gh<_i519.Dio>()),
     );
     gh.lazySingleton<_i11.QuoteRepository>(
       () => _i57.QuoteRepositoryImpl(

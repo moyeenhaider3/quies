@@ -49,7 +49,7 @@ dependencies:
   share_plus: ^12.0.1
   flutter_local_notifications: ^20.1.0
   timezone: ^0.10.1
-  http: ^1.2.2
+  dio: ^5.7.0
   just_audio: ^0.9.40
 
 dev_dependencies:

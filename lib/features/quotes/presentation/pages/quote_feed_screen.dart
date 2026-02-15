@@ -6,6 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../data/services/user_preferences_service.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_bar.dart';
+import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
+import '../../../music/data/genre_mapping.dart';
 import '../../domain/entities/feed_item.dart';
 import '../bloc/feed_bloc.dart';
 import '../widgets/breathing_prompt_card.dart';
@@ -13,9 +16,6 @@ import '../widgets/feed_audio_controller.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/welcome_back_overlay.dart';
-import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
-import '../../../../presentation/widgets/shimmer/shimmer_bar.dart';
-import '../../../music/data/genre_mapping.dart';
 
 class QuoteFeedScreen extends StatefulWidget {
   const QuoteFeedScreen({super.key});
@@ -215,13 +215,18 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(emoji, style: const TextStyle(fontSize: 22)),
+                                Text(
+                                  emoji,
+                                  style: const TextStyle(fontSize: 22),
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   label,
                                   style: GoogleFonts.outfit(
                                     fontSize: 15,
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -237,11 +242,15 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                             children: (moodToTagsMap[label] ?? []).map((tag) {
                               return GestureDetector(
                                 onTap: () {
-                                  context.read<FeedBloc>().add(ApplyTagFilter([tag]));
+                                  context.read<FeedBloc>().add(
+                                    ApplyTagFilter([tag]),
+                                  );
                                   Navigator.pop(context);
                                 },
                                 child: Container(
-                                  constraints: const BoxConstraints(minHeight: 28),
+                                  constraints: const BoxConstraints(
+                                    minHeight: 28,
+                                  ),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
                                     vertical: 4,
@@ -252,14 +261,18 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                     border: Border.all(
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.08)
-                                          : Colors.black.withValues(alpha: 0.04),
+                                          : Colors.black.withValues(
+                                              alpha: 0.04,
+                                            ),
                                     ),
                                   ),
                                   child: Text(
                                     tag,
                                     style: GoogleFonts.outfit(
                                       fontSize: 11,
-                                      color: isDark ? Colors.white38 : Colors.black38,
+                                      color: isDark
+                                          ? Colors.white38
+                                          : Colors.black38,
                                     ),
                                   ),
                                 ),

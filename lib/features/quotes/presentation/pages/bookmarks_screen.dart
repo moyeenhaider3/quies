@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 import '../../domain/entities/quote.dart';
 import '../bloc/feed_bloc.dart';
-import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 
 class BookmarksScreen extends StatelessWidget {
   const BookmarksScreen({super.key});
