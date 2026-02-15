@@ -108,9 +108,9 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             }
           })
           .catchError((_) {
-            // Fallback: try generic mood instrumental
+            // Fallback: try generic mood songs
             final moodKeyword =
-                moodMusicKeywordMap[currentMood] ?? 'ambient instrumental';
+                moodMusicKeywordMap[currentMood] ?? 'popular songs';
             _musicService
                 .fetchMusic(moodKeyword, excludeTrackIds: usedTrackIds)
                 .then((music) {
@@ -350,6 +350,11 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             themes: _prefsService.themes,
           );
 
+          // Pre-enable sound for all quotes if audioEnabled
+          final soundEnabled = _prefsService.audioEnabled
+              ? sorted.map((q) => q.id).toSet()
+              : <String>{};
+
           emit(
             FeedLoaded(
               sorted,
@@ -359,6 +364,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
               activeTags: moodTags,
               currentPage: paginated.page,
               totalPages: paginated.totalPages,
+              soundEnabledQuoteIds: soundEnabled,
             ),
           );
 
@@ -404,6 +410,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       (failure) => emit(const FeedError('Failed to load filtered quotes')),
       (paginated) {
         final quotes = paginated.results.map((rq) => rq.toQuote()).toList();
+
+        // Pre-enable sound for all quotes if audioEnabled
+        final soundEnabled = _prefsService.audioEnabled
+            ? quotes.map((q) => q.id).toSet()
+            : <String>{};
+
         emit(
           FeedLoaded(
             quotes,
@@ -413,6 +425,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             activeTags: event.tags,
             currentPage: paginated.page,
             totalPages: paginated.totalPages,
+            soundEnabledQuoteIds: soundEnabled,
           ),
         );
 
@@ -440,6 +453,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       (failure) => emit(const FeedError('Failed to load author quotes')),
       (paginated) {
         final quotes = paginated.results.map((rq) => rq.toQuote()).toList();
+
+        // Pre-enable sound for all quotes if audioEnabled
+        final soundEnabled = _prefsService.audioEnabled
+            ? quotes.map((q) => q.id).toSet()
+            : <String>{};
+
         emit(
           FeedLoaded(
             quotes,
@@ -450,6 +469,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             activeAuthorName: event.authorName,
             currentPage: paginated.page,
             totalPages: paginated.totalPages,
+            soundEnabledQuoteIds: soundEnabled,
           ),
         );
 
@@ -478,6 +498,11 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     result.fold((failure) => emit(const FeedError('Failed to load quotes')), (
       quotes,
     ) {
+      // Pre-enable sound for all quotes if audioEnabled
+      final soundEnabled = _prefsService.audioEnabled
+          ? quotes.map((q) => q.id).toSet()
+          : <String>{};
+
       emit(
         FeedLoaded(
           quotes,
@@ -485,6 +510,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           bookmarkedIds: savedBookmarks,
           currentMood: mood,
           availableTags: availableTags,
+          soundEnabledQuoteIds: soundEnabled,
         ),
       );
 

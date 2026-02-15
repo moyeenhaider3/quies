@@ -300,6 +300,8 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
               availableTags: loaded.availableTags,
               selectedTags: loaded.activeTags,
               onApply: (tags) {
+                _audioController.stop();
+                _hasInitialAutoPlay = false;
                 Navigator.of(ctx).pop();
                 ctx.read<FeedBloc>().add(ApplyTagFilter(tags));
               },
@@ -362,6 +364,8 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                   children: moodTags.map((tag) {
                     return GestureDetector(
                       onTap: () {
+                        _audioController.stop();
+                        _hasInitialAutoPlay = false;
                         Navigator.pop(context);
                         context.read<FeedBloc>().add(ApplyTagFilter([tag]));
                       },
@@ -512,6 +516,8 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
 
                             return GestureDetector(
                               onTap: () {
+                                _audioController.stop();
+                                _hasInitialAutoPlay = false;
                                 Navigator.pop(context);
                                 context.read<FeedBloc>().add(
                                   ApplyTagFilter([tag]),
@@ -1086,6 +1092,8 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                             // Clear All chip
                                             GestureDetector(
                                               onTap: () {
+                                                _audioController.stop();
+                                                _hasInitialAutoPlay = false;
                                                 context.read<FeedBloc>().add(
                                                   ClearFilters(),
                                                 );
@@ -1154,6 +1162,8 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                                 ),
                                                 child: GestureDetector(
                                                   onTap: () {
+                                                    _audioController.stop();
+                                                    _hasInitialAutoPlay = false;
                                                     final updated =
                                                         List<String>.from(
                                                           activeTags,
