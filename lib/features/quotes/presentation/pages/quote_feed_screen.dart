@@ -899,7 +899,10 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                                             .label_outline_rounded,
                                                         size: 14,
                                                         color: tagCount > 0
-                                                            ? AppTheme.calmTeal
+                                                            ? AppTheme.deepVoid
+                                                                  .withOpacity(
+                                                                    0.8,
+                                                                  )
                                                             : (isDark
                                                                   ? Colors
                                                                         .white54
@@ -915,7 +918,10 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                                           fontSize: 12,
                                                           color: tagCount > 0
                                                               ? AppTheme
-                                                                    .calmTeal
+                                                                    .deepVoid
+                                                                    .withOpacity(
+                                                                      0.8,
+                                                                    )
                                                               : (isDark
                                                                     ? Colors
                                                                           .white70
@@ -1192,7 +1198,10 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                                               GoogleFonts.outfit(
                                                                 fontSize: 12,
                                                                 color: AppTheme
-                                                                    .calmTeal,
+                                                                    .deepVoid
+                                                                    .withOpacity(
+                                                                      0.8,
+                                                                    ),
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w500,
@@ -1205,10 +1214,8 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
                                                           Icons.close_rounded,
                                                           size: 12,
                                                           color: AppTheme
-                                                              .calmTeal
-                                                              .withValues(
-                                                                alpha: 0.7,
-                                                              ),
+                                                              .deepVoid
+                                                              .withOpacity(0.8),
                                                         ),
                                                       ],
                                                     ),

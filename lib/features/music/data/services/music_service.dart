@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -55,7 +56,14 @@ class MusicService {
         throw Exception('Failed to fetch music: ${response.statusCode}');
       }
 
-      final data = response.data as Map<String, dynamic>;
+      // iTunes API returns content-type: text/javascript, so Dio may not
+      // auto-decode the JSON. Handle both String and Map responses.
+      final Map<String, dynamic> data;
+      if (response.data is String) {
+        data = jsonDecode(response.data as String) as Map<String, dynamic>;
+      } else {
+        data = response.data as Map<String, dynamic>;
+      }
       final resultCount = data['resultCount'] as int? ?? 0;
 
       if (resultCount == 0) {
