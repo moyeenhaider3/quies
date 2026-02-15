@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/ads/ad_service.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_cubit.dart';
@@ -91,7 +92,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          getIt<AdService>().tryShowInterstitial();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(
           'Settings',
@@ -135,6 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           );
         },
+      ),
       ),
     );
   }

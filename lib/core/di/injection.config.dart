@@ -32,7 +32,9 @@ import '../../features/quotes/domain/repositories/quote_repository.dart'
     as _i11;
 import '../../features/quotes/presentation/bloc/feed_bloc.dart' as _i378;
 import '../ads/ad_frequency_manager.dart' as _i247;
+import '../ads/ad_service.dart' as _i196;
 import '../ads/consent_manager.dart' as _i837;
+import '../ads/interstitial_ad_manager.dart' as _i452;
 import '../router/app_router.dart' as _i81;
 import '../theme/theme_cubit.dart' as _i611;
 
@@ -81,6 +83,8 @@ extension GetItInjectableX on _i174.GetIt {
             gh<_i979.Box<dynamic>>(instanceName: 'userBox')));
     gh.lazySingleton<_i670.NotificationService>(
         () => _i670.NotificationService(gh<_i402.UserPreferencesService>()));
+    gh.lazySingleton<_i452.InterstitialAdManager>(
+        () => _i452.InterstitialAdManager(gh<_i247.AdFrequencyManager>()));
     gh.factory<_i807.OnboardingCubit>(
         () => _i807.OnboardingCubit(gh<_i402.UserPreferencesService>()));
     gh.singleton<_i583.GoRouter>(
@@ -97,6 +101,10 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i402.UserPreferencesService>(),
           gh<_i963.ContentMatchingService>(),
           gh<_i829.MusicService>(),
+        ));
+    gh.lazySingleton<_i196.AdService>(() => _i196.AdService(
+          gh<_i452.InterstitialAdManager>(),
+          gh<_i247.AdFrequencyManager>(),
         ));
     return this;
   }

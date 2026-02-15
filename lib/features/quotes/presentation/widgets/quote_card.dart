@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/ads/ad_service.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../music/domain/entities/music_preview.dart';
@@ -235,9 +237,10 @@ class QuoteCard extends StatelessWidget {
                             context,
                             icon: Icons.share_rounded,
                             label: 'Share',
-                            onTap: () {
+                            onTap: () async {
                               context.read<FeedBloc>().add(ShareQuote(quote));
-                              Share.share('"${quote.text}" - ${quote.author}');
+                              await Share.share('"${quote.text}" - ${quote.author}');
+                              getIt<AdService>().tryShowInterstitial();
                             },
                             delay: 800.ms,
                           ),

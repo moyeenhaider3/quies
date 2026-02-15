@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'core/ads/ad_service.dart';
 import 'core/ads/consent_manager.dart';
 import 'core/di/injection.dart';
 import 'core/theme/app_theme.dart';
@@ -31,6 +32,9 @@ void main() async {
 
   // Initialize Notifications
   await getIt<NotificationService>().init();
+
+  // Initialize Ad Service (pre-load interstitials)
+  getIt<AdService>().initialize();
 
   runApp(const QuiesApp());
 }
