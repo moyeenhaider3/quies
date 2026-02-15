@@ -48,4 +48,9 @@ app.*.map.json
 docs/
 **.txt
 assets/data/**.json
+projects/quies/.planning
+assets/data/
+.github/
+.planning/phases/
+.planning/ROADMAP.md
 
