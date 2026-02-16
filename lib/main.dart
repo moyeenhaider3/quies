@@ -11,6 +11,7 @@ import 'core/di/injection.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'data/services/notification_service.dart';
+import 'data/services/user_preferences_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,8 +34,13 @@ void main() async {
   // Initialize Notifications
   await getIt<NotificationService>().init();
 
-  // Initialize Ad Service (pre-load interstitials)
+  // Initialize Ad Service (pre-load interstitials, start lifecycle listening)
   getIt<AdService>().initialize();
+
+  // Set initial active timestamp for cold resume detection
+  getIt<UserPreferencesService>().setLastActiveTimestamp(
+    DateTime.now().millisecondsSinceEpoch,
+  );
 
   runApp(const QuiesApp());
 }

@@ -41,15 +41,12 @@ class ConsentManager {
   }
 
   void _showConsentForm() {
-    ConsentForm.loadConsentForm(
-      (ConsentForm consentForm) {
-        final status = ConsentInformation.instance.getConsentStatus();
-        if (status == ConsentStatus.required) {
-          consentForm.show((FormError? error) {});
-        }
-      },
-      (FormError error) {},
-    );
+    ConsentForm.loadConsentForm((ConsentForm consentForm) {
+      final status = ConsentInformation.instance.getConsentStatus();
+      if (status == ConsentStatus.required) {
+        consentForm.show((FormError? error) {});
+      }
+    }, (FormError error) {});
   }
 
   bool get canShowPersonalizedAds {

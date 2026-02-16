@@ -55,8 +55,11 @@ class AdFrequencyManager {
     if (recentCount >= 1) return false;
 
     // 3. Max 3 per calendar day
-    final todayStart =
-        DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+    final todayStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).millisecondsSinceEpoch;
     final todayCount = timestamps.where((t) => t >= todayStart).length;
     if (todayCount >= 3) return false;
 
@@ -152,28 +155,30 @@ class AdFrequencyManager {
 
   Map<String, dynamic> debugState() {
     final now = DateTime.now();
-    final todayStart =
-        DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+    final todayStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).millisecondsSinceEpoch;
     final timestamps = _getInterstitialTimestamps();
 
     return {
-      'interstitials_today':
-          timestamps.where((t) => t >= todayStart).length,
-      'last_interstitial_ms_ago':
-          _box.get(_keyLastInterstitialTime) != null
-              ? now.millisecondsSinceEpoch -
-                  (_box.get(_keyLastInterstitialTime) as int)
-              : null,
+      'interstitials_today': timestamps.where((t) => t >= todayStart).length,
+      'last_interstitial_ms_ago': _box.get(_keyLastInterstitialTime) != null
+          ? now.millisecondsSinceEpoch -
+                (_box.get(_keyLastInterstitialTime) as int)
+          : null,
       'app_open_shown_this_session':
           _box.get(_keyAppOpenSessionId) == _currentSessionId
-              ? _box.get(_keyAppOpenShowCount, defaultValue: 0)
-              : 0,
+          ? _box.get(_keyAppOpenShowCount, defaultValue: 0)
+          : 0,
       'session_id': _currentSessionId,
-      'active_rewards': _getRewardedUnlocks()
-          .entries
-          .where((e) =>
-              DateTime.now().millisecondsSinceEpoch - e.value <
-              24 * 60 * 60 * 1000)
+      'active_rewards': _getRewardedUnlocks().entries
+          .where(
+            (e) =>
+                DateTime.now().millisecondsSinceEpoch - e.value <
+                24 * 60 * 60 * 1000,
+          )
           .map((e) => e.key)
           .toList(),
     };

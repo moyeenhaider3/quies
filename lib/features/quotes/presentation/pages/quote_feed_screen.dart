@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/ads/ad_config.dart';
+import '../../../../core/ads/ad_service.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../data/services/user_preferences_service.dart';
@@ -43,6 +45,10 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
   int _quotesExplored = 0;
   bool _hasInitialAutoPlay = false;
   double _headerGlassOpacity = 0.0;
+
+  // ── Ad tracking: interstitial after breathing prompts ──
+  int _breathingPromptsSeen = 0;
+  bool _wasOnBreathingPrompt = false;
 
   late final UserPreferencesService _prefsService;
   late final FeedAudioController _audioController;
@@ -133,6 +139,16 @@ class _QuoteFeedScreenState extends State<QuoteFeedScreen>
     setState(() {
       _headerGlassOpacity = index > 0 ? 1.0 : 0.0;
     });
+
+    // ── Ad trigger: interstitial after swiping past a breathing prompt ──
+    if (_wasOnBreathingPrompt && item is QuoteFeedItem) {
+      _breathingPromptsSeen++;
+      if (_breathingPromptsSeen % AdConfig.breathingPromptsPerInterstitial ==
+          0) {
+        getIt<AdService>().tryShowInterstitial();
+      }
+    }
+    _wasOnBreathingPrompt = item is BreathingPromptItem;
 
     if (item is QuoteFeedItem) {
       setState(() {

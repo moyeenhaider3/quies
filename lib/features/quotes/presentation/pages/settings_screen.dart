@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/ads/ad_service.dart';
+import '../../../../core/ads/rewarded_ad_button.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_cubit.dart';
@@ -100,50 +101,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Settings',
-          style: GoogleFonts.playfairDisplay(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          title: Text(
+            'Settings',
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: BlocBuilder<ThemeCubit, ThemeState>(
-        builder: (context, themeState) {
-          return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            children: [
-              _buildSectionHeader(context, 'Appearance'),
-              _buildThemeToggle(context, themeState, isDark),
-              const SizedBox(height: 8),
-              _buildFontSelector(context, themeState, isDark),
-              const SizedBox(height: 8),
-              _buildFontSizeSlider(context, themeState, isDark),
+        body: BlocBuilder<ThemeCubit, ThemeState>(
+          builder: (context, themeState) {
+            return ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: [
+                _buildSectionHeader(context, 'Appearance'),
+                _buildThemeToggle(context, themeState, isDark),
+                const SizedBox(height: 8),
+                _buildFontSelector(context, themeState, isDark),
+                const SizedBox(height: 8),
+                _buildFontSizeSlider(context, themeState, isDark),
 
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'Notifications'),
-              _buildNotificationToggle(context, isDark),
-              const SizedBox(height: 8),
-              _buildReminderTimeTile(context, isDark),
+                const SizedBox(height: 24),
+                _buildSectionHeader(context, 'Notifications'),
+                _buildNotificationToggle(context, isDark),
+                const SizedBox(height: 8),
+                _buildReminderTimeTile(context, isDark),
 
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'Preferences'),
-              _buildRetakeQuizTile(context, isDark),
+                const SizedBox(height: 24),
+                _buildSectionHeader(context, 'Preferences'),
+                _buildRetakeQuizTile(context, isDark),
 
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'Data'),
-              _buildExportBookmarksTile(context, isDark),
+                const SizedBox(height: 24),
+                _buildSectionHeader(context, 'Data'),
+                _buildExportBookmarksTile(context, isDark),
 
-              const SizedBox(height: 32),
-              _buildFontPreview(themeState, isDark),
-            ],
-          );
-        },
-      ),
+                const SizedBox(height: 32),
+                _buildFontPreview(themeState, isDark),
+
+                // ── Bonus Content ──
+                const SizedBox(height: 32),
+                _buildSectionHeader(context, 'Bonus Content'),
+                RewardedAdButton(
+                  rewardKey: 'font_preview_eb_garamond',
+                  label: 'Preview EB Garamond Bold',
+                  icon: Icons.font_download_rounded,
+                  onRewardEarned: () {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'EB Garamond Bold preview unlocked for 24 hours!',
+                            style: GoogleFonts.outfit(),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                RewardedAdButton(
+                  rewardKey: 'bonus_quote_pack_zen',
+                  label: 'Zen Quote Pack (10 quotes)',
+                  icon: Icons.auto_awesome_rounded,
+                  onRewardEarned: () {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Zen quote pack unlocked for 24 hours!',
+                            style: GoogleFonts.outfit(),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

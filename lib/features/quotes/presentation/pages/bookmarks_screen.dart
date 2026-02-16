@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/ads/native_ad_card.dart';
 import '../../../../presentation/widgets/shimmer/shimmer_quote_card.dart';
 import '../../domain/entities/quote.dart';
 import '../bloc/feed_bloc.dart';
@@ -90,11 +91,32 @@ class BookmarksScreen extends StatelessWidget {
     List<Quote> quotes,
     bool isDark,
   ) {
+    const adInterval = 8;
+    final adCount = quotes.length >= adInterval
+        ? (quotes.length / adInterval).floor()
+        : 0;
+    final totalItems = quotes.length + adCount;
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: quotes.length,
+      itemCount: totalItems,
       itemBuilder: (context, index) {
-        final quote = quotes[index];
+        final adsBefore = adCount > 0
+            ? (index / (adInterval + 1)).floor().clamp(0, adCount)
+            : 0;
+        final isAdSlot =
+            adCount > 0 &&
+            index > 0 &&
+            (index % (adInterval + 1) == adInterval);
+
+        if (isAdSlot) {
+          return const NativeAdCard();
+        }
+
+        final quoteIndex = index - adsBefore;
+        if (quoteIndex >= quotes.length) return const SizedBox.shrink();
+        final quote = quotes[quoteIndex];
+
         return Dismissible(
           key: ValueKey(quote.id),
           direction: DismissDirection.endToStart,

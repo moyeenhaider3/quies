@@ -239,7 +239,9 @@ class QuoteCard extends StatelessWidget {
                             label: 'Share',
                             onTap: () async {
                               context.read<FeedBloc>().add(ShareQuote(quote));
-                              await Share.share('"${quote.text}" - ${quote.author}');
+                              await Share.share(
+                                '"${quote.text}" - ${quote.author}',
+                              );
                               getIt<AdService>().tryShowInterstitial();
                             },
                             delay: 800.ms,

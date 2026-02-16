@@ -91,6 +91,11 @@ abstract class RegisterModule {
   @Named('userBox')
   Future<Box<dynamic>> get userBox => Hive.openBox<dynamic>('userBox');
 
+  @preResolve
+  @Named('adFrequencyBox')
+  Future<Box<dynamic>> get adFrequencyBox =>
+      Hive.openBox<dynamic>('adFrequency');
+
   @lazySingleton
   Dio get dio {
     final dio = Dio(
