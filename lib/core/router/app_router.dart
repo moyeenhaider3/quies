@@ -16,6 +16,7 @@ import '../../features/quotes/presentation/pages/settings_screen.dart';
 import '../di/injection.dart';
 import '../network/api_logger.dart';
 import '../network/quotable_dns_override.dart' show QuotableDnsInterceptor;
+import '../updater/update_checker_wrapper.dart';
 
 @module
 abstract class RegisterModule {
@@ -43,11 +44,13 @@ abstract class RegisterModule {
       ),
       ShellRoute(
         builder: (context, state, child) {
-          return BlocProvider(
-            create: (_) => getIt<FeedBloc>()
-              ..add(LoadFeed())
-              ..add(LoadTags()),
-            child: child,
+          return UpdateCheckerWrapper(
+            child: BlocProvider(
+              create: (_) => getIt<FeedBloc>()
+                ..add(LoadFeed())
+                ..add(LoadTags()),
+              child: child,
+            ),
           );
         },
         routes: [

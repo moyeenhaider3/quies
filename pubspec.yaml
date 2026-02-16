@@ -51,6 +51,7 @@ dependencies:
   timezone: ^0.10.1
   dio: ^5.7.0
   just_audio: ^0.9.40
+  upgrader: ^11.3.0
   google_mobile_ads: ^5.3.0
   app_tracking_transparency: ^2.0.6
 

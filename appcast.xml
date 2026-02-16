@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/appcast/">
+  <channel>
+    <title>Quies</title>
+    <!--
+      Appcast for in-app update prompting.
+      Hosted at: https://raw.githubusercontent.com/<owner>/quies/main/appcast.xml
+
+      How to use when releasing:
+      1. Add a new <item> with the new version
+      2. For critical/force updates, add <sparkle:criticalUpdate/> inside <sparkle:tags>
+      3. Commit + push before publishing to the store
+    -->
+    <item>
+      <title>Version 1.0.0</title>
+      <description>Initial release</description>
+      <sparkle:version>1.0.0</sparkle:version>
+      <sparkle:os>android</sparkle:os>
+    </item>
+  </channel>
+</rss>
