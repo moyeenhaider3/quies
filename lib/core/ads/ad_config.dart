@@ -22,7 +22,7 @@ class AdConfig {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🔧 MASTER SWITCH — flip to true for production builds
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  static const bool isProduction = false;
+  static const bool isProduction = true;
 
   /// Returns true when running with real ads (production mode).
   /// In debug builds this is always false regardless of [isProduction]
