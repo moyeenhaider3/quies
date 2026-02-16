@@ -48,7 +48,6 @@ app.*.map.json
 docs/*
 !docs/privacy-policy.html
 !docs/app-ads.txt
-**.txt
 !docs/app-ads.txt
 assets/data/**.json
 projects/quies/.planning
