@@ -1,6 +1,6 @@
 # quies
 
-A new Flutter project.
+Your mood picks the quotes. Ambient music sets the tone. Find calm in seconds..
 
 ## Getting Started
 
