@@ -35,31 +35,31 @@ class AdConfig {
 
   // App IDs (from AdMob dashboard → Apps → App settings)
   static const String _prodAndroidAppId =
-      'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX'; // TODO: replace
+      'ca-app-pub-4392358942856616~8839551880';
   static const String _prodIosAppId =
       'ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX'; // TODO: replace
 
   // Native Ad Unit IDs
   static const String _prodNativeAndroid =
-      'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
+      'ca-app-pub-4392358942856616/6974981468';
   static const String _prodNativeIos =
       'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
 
   // Interstitial Ad Unit IDs
   static const String _prodInterstitialAndroid =
-      'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
+      'ca-app-pub-4392358942856616/6048912601';
   static const String _prodInterstitialIos =
       'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
 
   // Rewarded Ad Unit IDs
   static const String _prodRewardedAndroid =
-      'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
+      'ca-app-pub-4392358942856616/8675075946';
   static const String _prodRewardedIos =
       'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
 
   // App Open Ad Unit IDs
   static const String _prodAppOpenAndroid =
-      'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
+      'ca-app-pub-4392358942856616/3850949085';
   static const String _prodAppOpenIos =
       'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // TODO: replace
 

@@ -1,4 +1,4 @@
-package com.example.quies
+package io.github.moyeenhaider3.quies
 
 import android.content.Context
 import android.view.LayoutInflater
